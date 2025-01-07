@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Models;
+
+use App\Models\Bab;
+use App\Models\Latihan;
+use App\Models\PrePost;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Materi extends Model
+{
+    use HasFactory;
+
+    protected $table = 'materis';
+
+    protected $fillable = [
+        'judul',
+        'slug',
+        'deskripsi'
+    ];
+
+    public function babs()
+    {
+        return $this->hasMany(Bab::class, 'materi_id', 'id');
+    }
+
+    public function latihans()
+    {
+        return $this->hasMany(Latihan::class, 'materi_id', 'id');
+    }
+
+    public function preposts()
+    {
+        return $this->hasMany(PrePost::class, 'materi_id', 'id');
+    }
+}

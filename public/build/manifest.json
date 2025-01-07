@@ -1,0 +1,31 @@
+{
+  "node_modules/@fontsource-variable/figtree/files/figtree-latin-ext-wght-normal.woff2": {
+    "file": "assets/figtree-latin-ext-wght-normal-b8fd952f.woff2",
+    "src": "node_modules/@fontsource-variable/figtree/files/figtree-latin-ext-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/figtree/files/figtree-latin-wght-normal.woff2": {
+    "file": "assets/figtree-latin-wght-normal-aafc5684.woff2",
+    "src": "node_modules/@fontsource-variable/figtree/files/figtree-latin-wght-normal.woff2"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-30c07bd5.css",
+    "isEntry": true,
+    "src": "resources/css/app.css"
+  },
+  "resources/js/app.css": {
+    "file": "assets/app-c6c19fad.css",
+    "src": "resources/js/app.css"
+  },
+  "resources/js/app.js": {
+    "assets": [
+      "assets/figtree-latin-ext-wght-normal-b8fd952f.woff2",
+      "assets/figtree-latin-wght-normal-aafc5684.woff2"
+    ],
+    "css": [
+      "assets/app-c6c19fad.css"
+    ],
+    "file": "assets/app-ae9e5ce0.js",
+    "isEntry": true,
+    "src": "resources/js/app.js"
+  }
+}
