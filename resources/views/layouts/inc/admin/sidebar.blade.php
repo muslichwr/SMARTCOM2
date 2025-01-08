@@ -10,6 +10,7 @@
                     <span class="ms-3">Dashboard</span>
                 </a>
             </li>
+            <li class="pt-4 uppercase text-gray-500 text-xs font-semibold px-3">-- CRUD --</li>
             <li>
                 <a href="/admin/materi"
                     class="{{ request()->is('admin/materi*') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">
@@ -49,6 +50,7 @@
                     <span class="flex-1 ms-3 whitespace-nowrap">Pre & Post</span>
                 </a>
             </li>
+            <li class="pt-4 uppercase text-gray-500 text-xs font-semibold px-3">-- Management Pemilihan Soal --</li>
             <li>
                 <a href="/admin/PrePostTest"
                     class="{{ request()->is('admin/PrePostTest*') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">
@@ -63,6 +65,7 @@
                     <span class="flex-1 ms-3 whitespace-nowrap">Test</span>
                 </a>
             </li>
+            <li class="pt-4 uppercase text-gray-500 text-xs font-semibold px-3">-- Management Kelompok --</li>
             <li>
                 <a href="/admin/proyek/kelompok"
                     class="{{ request()->is('admin/proyek/kelompok*') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">
@@ -77,6 +80,7 @@
                     <span class="flex-1 ms-3 whitespace-nowrap">Kelompok (Anggota)</span>
                 </a>
             </li>
+            <li class="pt-4 uppercase text-gray-500 text-xs font-semibold px-3">-- Lainnya --</li>
             <li>
                 <a href="/admin/riwayat"
                     class="{{ request()->is('admin/riwayat*') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">
