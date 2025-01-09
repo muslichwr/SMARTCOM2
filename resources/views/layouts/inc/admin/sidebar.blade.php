@@ -12,6 +12,13 @@
             </li>
             <li class="pt-4 uppercase text-gray-500 text-xs font-semibold px-3">-- CRUD --</li>
             <li>
+                <a href="/admin/topic"
+                    class="{{ request()->is('admin/topic*') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">
+                    <x-heroicon-o-inbox class="w-7" />
+                    <span class="flex-1 ms-3 whitespace-nowrap">Topik</span>
+                </a>
+            </li>
+            <li>
                 <a href="/admin/materi"
                     class="{{ request()->is('admin/materi*') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">
                     <x-heroicon-o-inbox class="w-7" />

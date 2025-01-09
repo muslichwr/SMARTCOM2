@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\PrePostController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PrePostTestController;
 use App\Http\Controllers\Admin\SoalJawabanController;
+use App\Http\Controllers\Admin\TopicController;
 use App\Http\Controllers\Frontend\FrontendController;
 use App\Http\Controllers\User\MateriController as UserMateriController;
 
@@ -68,6 +69,16 @@ Route::prefix('user')->middleware(['auth'])->group(function () {
 
 Route::prefix('admin')->middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('dashboard', [DashboardController::class,'index']);
+
+    //? Topics Route
+    Route::controller(TopicController::class)->group(function () {
+        Route::get('/topic', 'index');
+        Route::get('/topic/create', 'create');
+        Route::post('/topic', 'store');
+        Route::get('/topic/{topic}/edit','edit');
+        Route::put('/topic/{topic}', 'update');
+        Route::delete('/topic/{topic}', 'destroy');
+    });
 
     //? Materi Route
     Route::controller(MateriController::class)->group(function () {
