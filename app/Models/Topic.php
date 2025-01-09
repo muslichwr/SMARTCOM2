@@ -28,17 +28,22 @@ class Topic extends Model
         });
     }
 
-    public function children()
+    public function children(): HasMany
     {
         return $this->hasMany(Topic::class, 'parent_id');
     }
 
-    public function parent()
+    public function parent(): BelongsTo
     {
         return $this->belongsTo(Topic::class, 'parent_id');
     }
 
-    public function questions()
+    public function quizzes(): MorphToMany
+    {
+        return $this->morphedByMany(Quiz::class, 'topicable');
+    }
+
+    public function questions(): MorphToMany
     {
         return $this->morphedByMany(Question::class, 'topicable');
     }

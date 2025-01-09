@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PrePostTestController;
 use App\Http\Controllers\Admin\SoalJawabanController;
 use App\Http\Controllers\Admin\TopicController;
+use App\Http\Controllers\Admin\QuestionController;
 use App\Http\Controllers\Frontend\FrontendController;
 use App\Http\Controllers\User\MateriController as UserMateriController;
 
@@ -69,6 +70,21 @@ Route::prefix('user')->middleware(['auth'])->group(function () {
 
 Route::prefix('admin')->middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('dashboard', [DashboardController::class,'index']);
+
+    //? Questions Route
+    Route::controller(QuestionController::class)->group(function () {
+        Route::get('/question', 'index');
+        Route::get('/question/create', 'create');
+        Route::post('/question', 'store');
+        Route::get('/question/{question}/edit','edit');
+        Route::put('/question/{question}', 'update');
+        Route::delete('/question/{question}', 'destroy');
+    // Routes for managing options (answers)
+        Route::get('/question/{question}/options', 'editOptions')->name('question.options.edit'); // Edit options for a question
+        Route::post('/question/{question}/options', 'storeOption')->name('question.options.store'); // Tambah jawaban
+        Route::put('/option/{option}', 'updateOption')->name('question.options.update'); // Update jawaban
+        Route::delete('/option/{option}', 'destroyOption')->name('question.options.destroy'); // Hapus jawaban
+    });
 
     //? Topics Route
     Route::controller(TopicController::class)->group(function () {
