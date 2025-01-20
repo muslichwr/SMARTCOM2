@@ -50,6 +50,13 @@
                     <span class="flex-1 ms-3 whitespace-nowrap">Pre & Post</span>
                 </a>
             </li>
+            <li>
+                <a href="/admin/users"
+                    class="{{ request()->is('admin/users') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">
+                    <x-heroicon-o-users class="w-7" />
+                    <span class="flex-1 ms-3 whitespace-nowrap">Akun</span>
+                </a>
+            </li>
             <li class="pt-4 uppercase text-gray-500 text-xs font-semibold px-3">-- Management Pemilihan Soal --</li>
             <li>
                 <a href="/admin/PrePostTest"

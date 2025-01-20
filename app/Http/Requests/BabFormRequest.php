@@ -22,22 +22,11 @@ class BabFormRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'materi_id' => [
-                'required',
-                'integer'
-            ],
-            'judul' => [
-                'required',
-                'string'
-            ],
-            // 'slug' => [
-            //     'required',
-            //     'string',
-            //     'max:255'
-            // ],
-            'isi' => [
-                'required',
-            ],
+            'materi_id' => 'required|integer|exists:materis,id',
+            'judul' => 'required|string|max:255',
+            'isi' => 'required|string',
+            'file' => 'nullable|mimes:pdf,mp4,avi,mov|max:10240',
+            'video_url' => 'nullable|url',
         ];
     }
 }

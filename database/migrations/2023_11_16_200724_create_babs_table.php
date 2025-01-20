@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('judul');
             $table->string('slug');
             $table->longText('isi');
-
+            $table->string('file_path')->nullable();
+            $table->string('video_url')->nullable();
             $table->foreign('materi_id')->references('id')->on('materis')->onDelete('cascade');
             $table->timestamps();
         });

@@ -17,7 +17,9 @@ class Bab extends Model
         'judul',
         'slug',
         'isi',
-        'status'
+        'status',
+        'file_path',  // Menambahkan file_path
+        'video_url',  // Menambahkan video_url
     ];
 
     public function materi()

@@ -17,11 +17,10 @@ class BabController extends Controller
     public function index()
     {
         $babs = Bab::paginate(5);
+
         $title = 'Menghapus Bab!';
         $text = "Anda yakin ingin menghapus bab?";
         confirmDelete($title, $text);
-
-        // $renderedMarkdown = Markdown::convertToHtml($babs->isi);
 
         return view('admin.bab.index', compact('babs'));
     }
@@ -36,37 +35,35 @@ class BabController extends Controller
     public function store(BabFormRequest $request)
     {
         $validatedData = $request->validated();
-
-        $materi = Materi::findOrFail($validatedData['materi_id']);
-
-        $bab = $materi->babs()->create([
+    
+        $filePath = null;
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $filePath = $file->storeAs('uploads/babs', Str::random(10) . '.' . $file->getClientOriginalExtension(), 'public');
+        }
+    
+        $videoUrl = $validatedData['video_url'] ?? null;
+    
+        $bab = Bab::create([
             'materi_id' => $validatedData['materi_id'],
             'judul' => $validatedData['judul'],
             'slug' => Str::slug($validatedData['judul']),
             'isi' => $validatedData['isi'],
+            'file_path' => $filePath,
+            'video_url' => $videoUrl,
         ]);
-
-        return redirect('/admin/bab')->with('message','Bab Materi Berhasil Ditambahkan.');
+    
+        if ($bab) {
+            return redirect('/admin/bab')->with('success', 'Bab Materi Berhasil Ditambahkan.');
+        } else {
+            return back()->withInput()->with('error', 'Gagal menyimpan Bab Materi.');
+        }
     }
 
     public function edit(int $bab_id)
     {
         $bab = Bab::findOrFail($bab_id);
         $materis = Materi::all();
-
-        // $sqlText = $bab->isi;
-
-        // $pattern = '/~~~SQL:(.*?)~~~/s';
-
-        // $renderedMarkdown = preg_replace_callback(
-        //     $pattern, function($matches) {
-        //         return '<pre><code class="sql">' .$matches[1]. '</code></pre>';
-        //     },
-        //     $sqlText
-        // );
-
-        // $completeRenderedMarkdown = Markdown::convertToHtml($renderedMarkdown);
-
         $renderedMarkdown = Markdown::convertToHtml($bab->isi);
 
         return view('admin.bab.edit', compact('materis', 'bab', 'renderedMarkdown'));
@@ -75,31 +72,42 @@ class BabController extends Controller
     public function update(BabFormRequest $request, int $bab_id)
     {
         $validatedData = $request->validated();
-
-        // $bab = Materi::findOrFail($validatedData['materi_id'])->babs()->where('id', $bab_id)->first();
-        $bab = Bab::where('id', $bab_id)->first();
-
-        if($bab)
-        {
+        $bab = Bab::findOrFail($bab_id);
+    
+        try {
+            // Menangani Update File PDF atau Video
+            $filePath = $bab->file_path;  // Default jika tidak ada file baru
+            if ($request->hasFile('file')) {
+                // Hapus file lama jika ada
+                if ($filePath) {
+                    Storage::delete($filePath);
+                }
+                $file = $request->file('file');
+                $filePath = $file->storeAs('uploads/babs', Str::random(10) . '.' . $file->getClientOriginalExtension(), 'public');
+            }
+    
+            $videoUrl = $validatedData['video_url'] ?? $bab->video_url;
+    
+            // Mengupdate Data Bab
             $bab->update([
                 'materi_id' => $validatedData['materi_id'],
                 'judul' => $validatedData['judul'],
                 'slug' => Str::slug($validatedData['judul']),
                 'isi' => $validatedData['isi'],
+                'file_path' => $filePath,
+                'video_url' => $videoUrl,
             ]);
-
+    
             return redirect('/admin/bab')->with('message', 'Bab Berhasil Diupdate.');
-        }
-        else
-        {
-            return redirect('/admin/bab')->with('message','Tidak ada Bab Materi yang ditemukan.');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Error saat update Bab: ' . $e->getMessage());
         }
     }
 
     public function destroy(Bab $bab)
     {
         $bab->delete();
-        alert()->success('Hore!','Bab Berhasil Dihapus.');
+        alert()->success('Hore!', 'Bab Berhasil Dihapus.');
         return back();
     }
 }

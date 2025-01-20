@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\MateriController;
 use App\Http\Controllers\Admin\LatihanController;
 use App\Http\Controllers\Admin\PrePostController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PrePostTestController;
 use App\Http\Controllers\Admin\SoalJawabanController;
 use App\Http\Controllers\Frontend\FrontendController;
@@ -51,6 +52,22 @@ Route::prefix('user')->middleware(['auth'])->group(function () {
 
 Route::prefix('admin')->middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('dashboard', [DashboardController::class,'index']);
+
+    //? Akun Route
+    Route::controller(UserController::class)->group(function () {
+        Route::get('/users', 'index');
+        Route::get('/users/create', 'create');
+        Route::post('/users', 'store');
+        Route::get('/users/{users}/edit','edit');
+        Route::put('/users/{users}', 'update');
+        Route::delete('/users/{users}', 'destroy');
+
+        Route::get('/users/bulk-create', 'showBulkCreateForm')->name('users.bulk-create');
+        Route::post('/users/bulk-create', 'bulkCreate');
+        Route::get('/admin/users/download-template', 'downloadTemplate')->name('admin.users.downloadTemplate');
+
+
+    });
 
     //? Materi Route
     Route::controller(MateriController::class)->group(function () {

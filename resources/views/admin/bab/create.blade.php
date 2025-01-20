@@ -20,7 +20,7 @@
                         </div>
                     @endif --}}
 
-                    <form action="{{ url('admin/bab') }}" method="POST">
+                    <form action="{{ url('admin/bab') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
                         <br>
@@ -65,6 +65,20 @@
                                     <textarea id="previewIsi"
                                         class="border border-gray-300 rounded-md w-full py-2 px-3 focus:outline-none focus:border-blue-500" rows="3"
                                         readonly></textarea>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block mb-1">File PDF/Video</label>
+                                    <input type="file" name="file" class="border border-gray-300 rounded-md w-full py-1 px-3 focus:outline-none focus:border-blue-500" accept=".pdf,.mp4">
+                                    @error('file')
+                                        <small class="text-red-500">{{ $message }}</small>
+                                    @enderror
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block mb-1">URL Video YouTube</label>
+                                    <input type="url" name="video_url" class="border border-gray-300 rounded-md w-full py-1 px-3 focus:outline-none focus:border-blue-500" placeholder="Masukkan URL video YouTube">
+                                    @error('video_url')
+                                        <small class="text-red-500">{{ $message }}</small>
+                                    @enderror
                                 </div>
                                 {{-- <div class="flex flex-col space-y-2">
                                     <label for="editor" class="text-gray-600 font-semibold">Content</label>
