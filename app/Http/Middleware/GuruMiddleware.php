@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class AdminMiddleware
+class GuruMiddleware
 {
     /**
      * Handle an incoming request.
@@ -16,8 +16,8 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(!Auth::user()->role_as == '1'){
-            return redirect('/')->with('status', 'Access Denied. As you are not Admin.');
+        if(!Auth::user()->role_as == '2'){
+            return redirect('/')->with('status', 'Access Denied. As you are not Guru.');
         }
         return $next($request);
     }

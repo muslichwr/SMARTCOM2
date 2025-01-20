@@ -587,7 +587,7 @@ CREATE TABLE `users` (
   `remember_token` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  `role_as` tinyint NOT NULL DEFAULT '0' COMMENT '0=user, 1=admin'
+  `role_as` tinyint NOT NULL DEFAULT '0' COMMENT '0=user, 1=guru, 2=admin'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --

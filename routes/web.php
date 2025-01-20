@@ -16,23 +16,6 @@ use App\Http\Controllers\Admin\SoalJawabanController;
 use App\Http\Controllers\Frontend\FrontendController;
 use App\Http\Controllers\User\MateriController as UserMateriController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-
-// Route::get('/', function () {
-//     return view('welcome');
-// });
-
-// Route::get('/', [FrontendController::class, 'index'])->middleware(['auth']);
-
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -163,6 +146,44 @@ Route::prefix('admin')->middleware(['auth', 'isAdmin'])->group(function () {
         Route::get('/proyek/anggotaKelompok/delete-anggota', 'deleteAnggotaKelompok')->name('delete-anggota');
     });
 
+});
+
+// Route untuk guru
+Route::prefix('guru')->middleware(['auth', 'isGuru'])->group(function () {
+    Route::get('dashboard', [DashboardController::class, 'index']);
+
+    Route::controller(MateriController::class)->group(function () {
+        Route::get('/materi', 'index');
+        Route::get('/materi/create', 'create');
+        Route::post('/materi', 'store');
+        Route::get('/materi/{materi}/edit','edit');
+        Route::put('/materi/{materi}', 'update');
+        Route::delete('/materi/{materi}', 'destroy');
+    });
+
+    Route::controller(BabController::class)->group(function () {
+        Route::get('/bab', 'index');
+        Route::get('/bab/create', 'create');
+        Route::post('/bab', 'store');
+        Route::get('/bab/{bab}/edit','edit');
+        Route::put('/bab/{bab}', 'update');
+        Route::delete('/bab/{bab}', 'destroy');
+    });
+
+    Route::controller(LatihanController::class)->group(function () {
+        Route::get('/latihan', 'index');
+        Route::get('/latihan/create', 'create');
+        Route::post('/latihan', 'store');
+        Route::get('/latihan/{latihan}/edit', 'edit');
+        Route::put('/latihan/{latihan}', 'update');
+        Route::delete('/latihan/{latihan}', 'destroy');
+    });
+
+    Route::controller(RiwayatController::class)->group(function () {
+        Route::get('/riwayat', 'index');
+        Route::get('/riwayat/{user}/lihat', 'cekProgress');
+        Route::get('/riwayat/{user}/lihat/{prepost}', 'cekDetail');
+    });
 });
 
 require __DIR__.'/auth.php';

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('judul');
             $table->string('slug');
             $table->longText('deskripsi');
+            $table->string('file_path');
             $table->timestamps();
         });
     }
