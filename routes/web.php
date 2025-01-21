@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Admin\PjBLController;
+use App\Http\Controllers\Admin\PJBLKelompokController;
 use App\Http\Controllers\Admin\RiwayatController;
 use App\Models\PrePostTest;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +53,19 @@ Route::prefix('user')->middleware(['auth'])->group(function () {
 Route::prefix('admin')->middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('dashboard', [DashboardController::class,'index']);
 
+    // PJBL Kelompok Route
+    Route::controller(PJBLKelompokController::class)->group(function () {
+        Route::get('pjbl/kelompok', 'index')->name('kelompok.index');
+        Route::get('pjbl/kelompok/create', 'create')->name('kelompok.create');
+        Route::post('pjbl/kelompok', 'store')->name('kelompok.store');
+        Route::get('pjbl/kelompok/{slug}/edit', 'edit')->name('kelompok.edit');
+        Route::put('pjbl/kelompok/{slug}', 'update')->name('kelompok.update');
+        Route::get('pjbl/kelompok/{slug}', 'show')->name('kelompok.show');
+        Route::post('pjbl/kelompok/{slug}/addAnggota', 'addAnggota')->name('kelompok.addAnggota');
+        Route::post('pjbl/kelompok/{slug}/setKetua', 'setKetua')->name('kelompok.setKetua');
+        Route::delete('pjbl/kelompok/{slug}', 'destroy')->name('kelompok.destroy'); // Update rute destroy dengan slug
+    });
+
     //? Akun Route
     Route::controller(UserController::class)->group(function () {
         Route::get('/users', 'index');
@@ -65,8 +78,6 @@ Route::prefix('admin')->middleware(['auth', 'isAdmin'])->group(function () {
         Route::get('/users/bulk-create', 'showBulkCreateForm')->name('users.bulk-create');
         Route::post('/users/bulk-create', 'bulkCreate');
         Route::get('/admin/users/download-template', 'downloadTemplate')->name('admin.users.downloadTemplate');
-
-
     });
 
     //? Materi Route
@@ -147,21 +158,21 @@ Route::prefix('admin')->middleware(['auth', 'isAdmin'])->group(function () {
         Route::get('/riwayat/{user}/lihat/{prepost}', 'cekDetail');
     });
 
-    //? Proyek
-    Route::controller(PjBLController::class)->group(function () {
-        Route::get('/proyek/kelompok', 'index');
-        Route::post('/proyek/kelompok', 'store');
-        Route::put('/proyek/kelompok/{kelompok}', 'update');
-        Route::delete('/proyek/kelompok/{kelompok}', 'destroy');
+    // //? Proyek
+    // Route::controller(PjBLController::class)->group(function () {
+    //     Route::get('/proyek/kelompok', 'index');
+    //     Route::post('/proyek/kelompok', 'store');
+    //     Route::put('/proyek/kelompok/{kelompok}', 'update');
+    //     Route::delete('/proyek/kelompok/{kelompok}', 'destroy');
 
-        //Todo: Anggota Kelompok
-        Route::get('/proyek/anggotaKelompok', 'indexAnggota');
+    //     //Todo: Anggota Kelompok
+    //     Route::get('/proyek/anggotaKelompok', 'indexAnggota');
 
-        Route::get('/proyek/anggotaKelompok/get-user', 'getUser')->name('get-user'); //* Add Soal&Jawaban
-        Route::post('/proyek/anggotaKelompok/add-user', 'addUser')->name('add-user');
-        Route::get('/proyek/anggotaKelompok/get-anggota', 'getAnggotaKelompok')->name('get-anggota');
-        Route::get('/proyek/anggotaKelompok/delete-anggota', 'deleteAnggotaKelompok')->name('delete-anggota');
-    });
+    //     Route::get('/proyek/anggotaKelompok/get-user', 'getUser')->name('get-user'); //* Add Soal&Jawaban
+    //     Route::post('/proyek/anggotaKelompok/add-user', 'addUser')->name('add-user');
+    //     Route::get('/proyek/anggotaKelompok/get-anggota', 'getAnggotaKelompok')->name('get-anggota');
+    //     Route::get('/proyek/anggotaKelompok/delete-anggota', 'deleteAnggotaKelompok')->name('delete-anggota');
+    // });
 
 });
 

@@ -72,21 +72,21 @@
                     <span class="flex-1 ms-3 whitespace-nowrap">Test</span>
                 </a>
             </li>
-            <li class="pt-4 uppercase text-gray-500 text-xs font-semibold px-3">-- Management Kelompok --</li>
+            <li class="pt-4 uppercase text-gray-500 text-xs font-semibold px-3">-- Project Based Learning --</li>
             <li>
-                <a href="/admin/proyek/kelompok"
-                    class="{{ request()->is('admin/proyek/kelompok*') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">
-                    <x-heroicon-o-pencil-square class="w-7" />
-                    <span class="flex-1 ms-3 whitespace-nowrap">Proyek (Kelompok)</span>
-                </a>
+                <a href="/admin/pjbl/kelompok"
+                class="{{ request()->is('admin/pjbl/kelompok*') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">
+                <x-heroicon-o-pencil-square class="w-7" />
+                <span class="flex-1 ms-3 whitespace-nowrap">PJBL (Kelompok)</span>
+            </a>
             </li>
-            <li>
+            {{-- <li>
                 <a href="/admin/proyek/anggotaKelompok"
                     class="{{ request()->is('admin/proyek/anggotaKelompok*') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">
                     <x-heroicon-o-pencil-square class="w-7" />
                     <span class="flex-1 ms-3 whitespace-nowrap">Kelompok (Anggota)</span>
                 </a>
-            </li>
+            </li> --}}
             <li class="pt-4 uppercase text-gray-500 text-xs font-semibold px-3">-- Lainnya --</li>
             <li>
                 <a href="/admin/riwayat"

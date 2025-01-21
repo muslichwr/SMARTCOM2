@@ -20,12 +20,12 @@ class Anggota extends Model
 
     public function kelompok()
     {
-        return $this->belongsTo(Kelompok::class, 'kelompok_id', 'id');
+        return $this->belongsTo(Kelompok::class);
     }
 
-    public function users()
+    public function user()
     {
-        return $this->hasOne(User::class, 'id', 'user_id');
+        return $this->belongsTo(User::class);
     }
 
 }

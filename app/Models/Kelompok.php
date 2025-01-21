@@ -16,8 +16,18 @@ class Kelompok extends Model
         'slug',
     ];
 
-    public function anggota()
+    public function anggotas()
     {
-        return $this->hasMany(Anggota::class, 'kelompok_id', 'id');
+        return $this->hasMany(Anggota::class);
+    }
+
+    public function ketua()
+    {
+        return $this->hasOne(Ketua::class);
+    }
+
+    public function ketuaUser()
+    {
+        return $this->hasOneThrough(User::class, Ketua::class, 'kelompok_id', 'id', 'id', 'user_id');
     }
 }
