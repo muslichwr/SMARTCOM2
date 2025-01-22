@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\RiwayatController;
 use App\Models\PrePostTest;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BantuanController;
 use App\Http\Controllers\Admin\BabController;
 use App\Http\Controllers\Admin\TestController;
 use App\Http\Controllers\Admin\MateriController;
@@ -21,6 +22,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/bantuan', [BantuanController::class, 'index'])->name('bantuan.index');
+
 });
 
 Route::get('/', [FrontendController::class, 'index']);
