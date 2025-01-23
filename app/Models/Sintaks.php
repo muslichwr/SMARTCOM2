@@ -21,8 +21,17 @@ class Sintaks extends Model
         'hasil_analisis',
         'deskripsi_proyek',
         'tugas_anggota',
+        'file_jadwal', // Tambahkan ini
+        'to_do_list',
+        'file_proyek',
+        'file_laporan',
         'status_validasi',
         'feedback_guru',
+        'score_class_object',
+        'score_encapsulation',
+        'score_inheritance',
+        'score_logic_function',
+        'score_project_report',
     ];
 
     public function kelompok()

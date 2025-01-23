@@ -66,7 +66,13 @@ Route::prefix('user')->middleware(['auth'])->group(function () {
         Route::post('/materi/{slug}/sintaks/tahap2', 'simpanTahap2');
         Route::get('/materi/{slug}/sintaks/tahap3', 'tahap3');
         Route::post('/materi/{slug}/sintaks/tahap3', 'simpanTahap3');
-
+        Route::post('/materi/{slug}/sintaks/tahap4', 'simpanTahap4');
+        Route::get('/materi/{slug}/sintaks/tahap5', 'tahap5')->name('user.materi.tahap5');
+        Route::post('/materi/{slug}/sintaks/tahap5', 'simpanTahap5');
+        Route::get('/materi/{slug}/sintaks/tahap6', 'tahap6')->name('user.materi.tahap6');
+        Route::post('/materi/{slug}/sintaks/tahap6', 'simpanTahap6');
+        Route::get('/materi/{slug}/sintaks/tahap7', 'tahap7')->name('user.materi.tahap7');
+        Route::post('/materi/{slug}/sintaks/tahap7', 'simpanTahap7');
 
         //Todo: Latihan
         Route::get('/latihan/{materi}', 'bukaLatihan');

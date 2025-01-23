@@ -29,29 +29,53 @@
                         </div>
                     @endif
 
-                    <!-- Button untuk meminta penilaian -->
-                    <form action="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap7') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded">
-                            Minta Penilaian
-                        </button>
-                    </form>
-
-                    <!-- Menampilkan Nilai dan Feedback dari Guru -->
-                    @if($sintaks->score_class_object)
-                        <div class="mt-4">
-                            <h4 class="text-lg font-semibold">Nilai:</h4>
-                            <ul>
-                                <li>Class & Object: {{ $sintaks->score_class_object }}</li>
-                                <li>Encapsulation: {{ $sintaks->score_encapsulation }}</li>
-                                <li>Inheritance: {{ $sintaks->score_inheritance }}</li>
-                                <li>Logic & Function: {{ $sintaks->score_logic_function }}</li>
-                                <li>Project Report: {{ $sintaks->score_project_report }}</li>
-                            </ul>
-
-                            <h4 class="text-lg font-semibold mt-4">Feedback:</h4>
-                            <p>{{ $sintaks->feedback_guru }}</p>
+                    <!-- Cek apakah penilaian sudah dilakukan -->
+                    @if ($sintaks && $sintaks->status_validasi == 'valid')
+                        <div class="bg-green-100 p-4 rounded-lg mb-4">
+                            <strong>Status Penilaian:</strong> <span class="text-green-600">Selesai</span>
+                            <p><strong>Feedback Guru:</strong> {{ $sintaks->feedback_guru ?? 'Belum ada feedback' }}</p>
                         </div>
+
+                        <!-- Tampilkan total nilai -->
+                        <div class="mb-4">
+                            <h4 class="text-sm font-semibold mb-2">Total Nilai</h4>
+                            <div class="space-y-2">
+                                <p>Class dan Object: {{ $sintaks->score_class_object ?? '0' }}</p>
+                                <p>Encapsulation: {{ $sintaks->score_encapsulation ?? '0' }}</p>
+                                <p>Inheritance: {{ $sintaks->score_inheritance ?? '0' }}</p>
+                                <p>Function and Logic: {{ $sintaks->score_logic_function ?? '0' }}</p>
+                                <p>Project Report: {{ $sintaks->score_project_report ?? '0' }}</p>
+                                <p class="font-semibold">Total: {{ 
+                                    ($sintaks->score_class_object ?? 0) +
+                                    ($sintaks->score_encapsulation ?? 0) +
+                                    ($sintaks->score_inheritance ?? 0) +
+                                    ($sintaks->score_logic_function ?? 0) +
+                                    ($sintaks->score_project_report ?? 0)
+                                }}</p>
+                            </div>
+                        </div>
+                    @elseif ($sintaks && $sintaks->status_validasi == 'pending')
+                        <div class="bg-yellow-100 p-4 rounded-lg mb-4">
+                            <strong>Status Penilaian:</strong> <span class="text-yellow-600">Menunggu Penilaian</span>
+                            <p>Silakan menunggu guru untuk memberikan penilaian.</p>
+                        </div>
+                    @else
+                        <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                            <strong>Status Penilaian:</strong> <span class="text-gray-600">Belum Diminta</span>
+                            <p>Silakan klik tombol di bawah untuk meminta penilaian dari guru.</p>
+                        </div>
+                    @endif
+
+                    <!-- Tombol Minta Penilaian -->
+                    @if (!$sintaks || $sintaks->status_validasi != 'valid')
+                        <form action="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap7') }}" method="POST">
+                            @csrf
+                            <div class="mt-6 flex justify-end">
+                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
+                                    Minta Penilaian
+                                </button>
+                            </div>
+                        </form>
                     @endif
                 </div>
             </div>

@@ -40,7 +40,7 @@
                         <div class="space-y-4">
                             <div class="mb-4">
                                 <label for="deskripsi_proyek" class="block text-sm font-semibold">Deskripsi Proyek</label>
-                                <textarea name="deskripsi_proyek" id="deskripsi_proyek" rows="4" class="border border-gray-300 p-2 w-full" disabled>{{ $sintaks->deskripsi_proyek ?? '' }}</textarea>
+                                <textarea name="deskripsi_proyek" id="deskripsi_proyek" rows="4" class="border border-gray-300 p-2 w-full bg-gray-100" disabled>{{ $sintaks->deskripsi_proyek ?? '' }}</textarea>
                             </div>
 
                             <div class="mb-4">
@@ -62,24 +62,32 @@
                             @csrf
                             <div class="mb-4">
                                 <label for="deskripsi_proyek" class="block text-sm font-semibold">Deskripsi Proyek</label>
-                                <textarea name="deskripsi_proyek" id="deskripsi_proyek" rows="4" class="border border-gray-300 p-2 w-full" required>{{ $sintaks->deskripsi_proyek ?? '' }}</textarea>
+                                <textarea name="deskripsi_proyek" id="deskripsi_proyek" rows="4" class="border border-gray-300 p-2 w-full" placeholder="Masukkan deskripsi proyek..." required>{{ $sintaks->deskripsi_proyek ?? '' }}</textarea>
+                                @error('deskripsi_proyek')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div class="mb-4">
                                 <label for="tugas_anggota" class="block text-sm font-semibold">Tugas Anggota</label>
-                                <div class="space-y-2">
+                                <div class="space-y-2" id="tugas-anggota-container">
                                     @foreach ($anggotaKelompok as $anggota)
                                         <div class="flex items-center gap-2">
                                             <label class="text-sm">{{ $anggota->user->name }}</label>
-                                            <input type="text" name="tugas_anggota[{{ $loop->index }}]" value="{{ json_decode($sintaks->tugas_anggota)[$loop->index] ?? '' }}" class="border border-gray-300 p-2 w-full" required />
+                                            <input type="text" name="tugas_anggota[{{ $loop->index }}]" value="{{ json_decode($sintaks->tugas_anggota)[$loop->index] ?? '' }}" class="border border-gray-300 p-2 w-full" placeholder="Masukkan tugas {{ $anggota->user->name }}..." required />
                                         </div>
                                     @endforeach
                                 </div>
+                                @error('tugas_anggota')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
-                                Simpan
-                            </button>
+                            <div class="flex justify-end">
+                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
+                                    Simpan
+                                </button>
+                            </div>
                         </form>
                     @endif
                 </div>

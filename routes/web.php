@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\PJBLKelompokController;
+use App\Http\Controllers\Admin\PJBLSintaksController;
 use App\Http\Controllers\Admin\RiwayatController;
 use App\Models\PrePostTest;
 use Illuminate\Support\Facades\Route;
@@ -53,7 +54,7 @@ Route::prefix('user')->middleware(['auth'])->group(function () {
         Route::get('/materi/{slug}/sintaks/tahap6', 'tahap6')->name('user.materi.tahap6');
         Route::post('/materi/{slug}/sintaks/tahap6', 'simpanTahap6');
         Route::get('/materi/{slug}/sintaks/tahap7', 'tahap7')->name('user.materi.tahap7');
-        Route::post('/materi/{slug}/sintaks/tahap7', 'simpanTahap7');
+        Route::post('/materi/{slug}/sintaks/tahap7', 'mintaPenilaian');
         //Todo: Latihan
         Route::get('/latihan/{materiSlug}', 'bukaLatihan');
         Route::get('/latihan/{slug}/kerjakan', 'kerjakan');
@@ -71,6 +72,27 @@ Route::prefix('user')->middleware(['auth'])->group(function () {
 
 Route::prefix('admin')->middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('dashboard', [DashboardController::class,'index']);
+
+    // Sintaks Route
+    Route::controller(PJBLSintaksController::class)->group(function () {
+        // Halaman utama (daftar materi)
+        Route::get('pjbl/sintaks', 'index')->name('admin.pjbl.sintaks.index');
+
+        // Daftar kelompok di materi tertentu
+        Route::get('pjbl/sintaks/{materi}/kelompok', 'listKelompok')->name('admin.pjbl.sintaks.kelompok');
+
+        // Detail sintaks kelompok
+        Route::get('pjbl/sintaks/{materi}/{kelompok}/detail', 'detailSintaks')->name('admin.pjbl.sintaks.detail');
+
+        // Validasi sintaks di setiap tahap
+        Route::post('pjbl/sintaks/{materi}/{kelompok}/validasi', 'validasiTahap')->name('admin.pjbl.sintaks.validasi');
+
+        // Beri nilai dan feedback (khusus tahap 7)
+        Route::post('pjbl/sintaks/{materi}/{kelompok}/nilai', 'beriNilai')->name('admin.pjbl.sintaks.nilai');
+
+        // Update data di setiap tahap
+        Route::post('pjbl/sintaks/{materi}/{kelompok}/update', 'updateTahap')->name('admin.pjbl.sintaks.update');
+    });
 
     // PJBL Kelompok Route
     Route::controller(PJBLKelompokController::class)->group(function () {

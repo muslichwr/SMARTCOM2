@@ -80,6 +80,13 @@
                 <span class="flex-1 ms-3 whitespace-nowrap">PJBL (Kelompok)</span>
             </a>
             </li>
+            <li>
+                <a href="/admin/pjbl/sintaks"
+                class="{{ request()->is('admin/pjbl/sintaks*') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">
+                <x-heroicon-o-pencil-square class="w-7" />
+                <span class="flex-1 ms-3 whitespace-nowrap">PJBL (Sintaks)</span>
+            </a>
+            </li>
             {{-- <li>
                 <a href="/admin/proyek/anggotaKelompok"
                     class="{{ request()->is('admin/proyek/anggotaKelompok*') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">

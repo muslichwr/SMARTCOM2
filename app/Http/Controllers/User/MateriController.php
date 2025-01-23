@@ -27,6 +27,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 
 class MateriController extends Controller
 {
@@ -107,17 +108,61 @@ class MateriController extends Controller
             $query->where('user_id', auth()->id());
         })->first();
         
+        // Jika kelompok tidak ditemukan, redirect ke halaman lain dengan pesan error
         if (!$kelompok) {
             return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
-
+    
         // Ambil sintaks tahap 7
         $sintaks = Sintaks::where('materi_id', $materi->id)
-                        ->where('kelompok_id', $kelompok->id)
-                        ->where('status_tahap', 'tahap_7')
-                        ->first();
-
+            ->where('kelompok_id', $kelompok->id)
+            ->where('status_tahap', 'tahap_7')
+            ->first();
+    
+        // Jika tidak ada sintaks untuk kelompok ini (pertama kali mengerjakan), buat sintaks baru
+        if (!$sintaks) {
+            $sintaks = new Sintaks();
+            $sintaks->materi_id = $materi->id;
+            $sintaks->kelompok_id = $kelompok->id;
+            $sintaks->status_tahap = 'tahap_7';
+            $sintaks->status_validasi = 'pending'; // Status awal: pending
+            $sintaks->save();  // Simpan sintaks baru
+            
+            return redirect()->route('user.materi.tahap7', $materi->slug)
+                            ->with('success', 'Silakan meminta penilaian dari guru.');
+        }
+    
+        // Kirim data ke view
         return view('frontend.user.sintaks.tahap7', compact('materi', 'kelompok', 'sintaks'));
+    }
+
+    public function mintaPenilaian(Request $request, $slug)
+    {
+        // Ambil materi berdasarkan slug
+        $materi = Materi::where('slug', $slug)->firstOrFail();
+        
+        // Ambil kelompok berdasarkan user yang sedang login
+        $kelompok = Kelompok::whereHas('anggotas', function($query) {
+            $query->where('user_id', auth()->id());
+        })->first();
+        
+        // Jika kelompok tidak ditemukan, redirect ke halaman lain dengan pesan error
+        if (!$kelompok) {
+            return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
+        }
+    
+        // Ambil sintaks tahap 7
+        $sintaks = Sintaks::where('materi_id', $materi->id)
+            ->where('kelompok_id', $kelompok->id)
+            ->where('status_tahap', 'tahap_7')
+            ->firstOrFail();
+    
+        // Update status validasi menjadi 'pending'
+        $sintaks->status_validasi = 'pending';
+        $sintaks->save();
+    
+        return redirect()->route('user.materi.tahap7', $materi->slug)
+                        ->with('success', 'Permintaan penilaian telah dikirim.');
     }
 
 
@@ -135,23 +180,34 @@ class MateriController extends Controller
             return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
 
-        // Ambil sintaks tahap 6
+        // Ambil atau buat sintaks tahap 6
         $sintaks = Sintaks::where('materi_id', $materi->id)
-                        ->where('kelompok_id', $kelompok->id)
-                        ->where('status_tahap', 'tahap_6')
-                        ->first();
+            ->where('kelompok_id', $kelompok->id)
+            ->where('status_tahap', 'tahap_6')
+            ->first();
+
+        if (!$sintaks) {
+            $sintaks = new Sintaks();
+            $sintaks->materi_id = $materi->id;
+            $sintaks->kelompok_id = $kelompok->id;
+            $sintaks->status_tahap = 'tahap_6';
+            $sintaks->save();  // Simpan sintaks baru
+            
+            return redirect()->route('user.materi.tahap6', $materi->slug)
+                            ->with('success', 'Silakan mulai mengerjakan tahap 6.');
+        }
 
         return view('frontend.user.sintaks.tahap6', compact('materi', 'kelompok', 'sintaks'));
     }
 
     public function simpanTahap6(Request $request, $slug)
     {
-        // Validasi file yang diupload
+        // Validasi upload file (opsional)
         $request->validate([
-            'file_proyek' => 'required|file|mimes:zip,rar,pdf,docx,xlsx|max:10240', // Tentukan jenis file yang diizinkan
-            'file_laporan' => 'required|file|mimes:pdf,docx,xlsx|max:10240', // Tentukan jenis file yang diizinkan
+            'file_proyek' => 'nullable|file|mimes:pdf,docx,xlsx|max:10240', // File proyek (opsional)
+            'file_laporan' => 'nullable|file|mimes:pdf,docx,xlsx|max:10240', // File laporan (opsional)
         ]);
-    
+        
         // Ambil materi berdasarkan slug
         $materi = Materi::where('slug', $slug)->firstOrFail();
         
@@ -164,20 +220,74 @@ class MateriController extends Controller
             return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
     
-        // Menyimpan data tahap 6
-        $sintaks = Sintaks::updateOrCreate(
-            [
-                'materi_id' => $materi->id,
-                'kelompok_id' => $kelompok->id,
-                'status_tahap' => 'tahap_6',
-            ],
-            [
-                'file_proyek' => $request->file('file_proyek')->store('proyek', 'public'), // Simpan file proyek
-                'file_laporan' => $request->file('file_laporan')->store('laporan', 'public'), // Simpan file laporan
-            ]
-        );
+        // Ambil sintaks tahap 6
+        $sintaks = Sintaks::where('materi_id', $materi->id)
+            ->where('kelompok_id', $kelompok->id)
+            ->where('status_tahap', 'tahap_6')
+            ->firstOrFail();
+    
+        // Simpan file proyek jika diupload
+        if ($request->hasFile('file_proyek')) {
+            // Hapus file proyek lama jika ada
+            if ($sintaks->file_proyek && Storage::disk('public')->exists($sintaks->file_proyek)) {
+                Storage::disk('public')->delete($sintaks->file_proyek);
+            }
+    
+            // Simpan file proyek baru
+            $fileProyekPath = $request->file('file_proyek')->store('proyek', 'public');
+            $sintaks->file_proyek = $fileProyekPath;
+        }
+    
+        // Simpan file laporan jika diupload
+        if ($request->hasFile('file_laporan')) {
+            // Hapus file laporan lama jika ada
+            if ($sintaks->file_laporan && Storage::disk('public')->exists($sintaks->file_laporan)) {
+                Storage::disk('public')->delete($sintaks->file_laporan);
+            }
+    
+            // Simpan file laporan baru
+            $fileLaporanPath = $request->file('file_laporan')->store('laporan', 'public');
+            $sintaks->file_laporan = $fileLaporanPath;
+        }
+    
+        // Simpan perubahan ke database
+        $sintaks->save();
         
-        return redirect()->route('user.materi.sintaks', ['slug' => $slug])->with('success', 'Proyek dan Laporan berhasil diupload.');
+        return redirect()->route('user.materi.tahap6', ['slug' => $slug])->with('success', 'File berhasil diupload.');
+    }
+
+    public function simpanTahap5(Request $request, $slug)
+    {
+        // Ambil materi berdasarkan slug
+        $materi = Materi::where('slug', $slug)->firstOrFail();
+        
+        // Ambil kelompok berdasarkan user yang sedang login
+        $kelompok = Kelompok::whereHas('anggotas', function($query) {
+            $query->where('user_id', auth()->id());
+        })->first();
+        
+        if (!$kelompok) {
+            return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
+        }
+    
+        // Ambil sintaks tahap 5
+        $sintaks = Sintaks::where('materi_id', $materi->id)
+            ->where('kelompok_id', $kelompok->id)
+            ->where('status_tahap', 'tahap_5')
+            ->firstOrFail();
+    
+        // Update status To-Do List
+        $toDoList = json_decode($sintaks->to_do_list, true); // Decode JSON ke array
+        foreach ($request->to_do_list as $key => $task) {
+            $toDoList[$key]['status'] = $task['status'];
+        }
+    
+        // Konversi array ke JSON sebelum disimpan
+        $sintaks->to_do_list = json_encode($toDoList);
+        $sintaks->save();
+    
+        return redirect()->route('user.materi.tahap5', $materi->slug)
+                        ->with('success', 'Status tugas berhasil diperbarui.');
     }
 
     public function tahap5($slug)
@@ -194,13 +304,54 @@ class MateriController extends Controller
             return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
 
-        // Ambil sintaks tahap 5
-        $sintaks = Sintaks::where('materi_id', $materi->id)
-                        ->where('kelompok_id', $kelompok->id)
-                        ->where('status_tahap', 'tahap_5')
-                        ->first();
+        // Ambil sintaks tahap 3 untuk mengambil tugas_anggota
+        $sintaksTahap3 = Sintaks::where('materi_id', $materi->id)
+            ->where('kelompok_id', $kelompok->id)
+            ->where('status_tahap', 'tahap_3')
+            ->first();
 
-        return view('frontend.user.sintaks.tahap5', compact('materi', 'kelompok', 'sintaks'));
+        if (!$sintaksTahap3) {
+            return redirect()->route('user.materi.sintaks')->with('error', 'Tahap 3 belum selesai.');
+        }
+
+        // Ambil atau buat sintaks tahap 5
+        $sintaksTahap5 = Sintaks::where('materi_id', $materi->id)
+            ->where('kelompok_id', $kelompok->id)
+            ->where('status_tahap', 'tahap_5')
+            ->first();
+
+        if (!$sintaksTahap5) {
+            $sintaksTahap5 = new Sintaks();
+            $sintaksTahap5->materi_id = $materi->id;
+            $sintaksTahap5->kelompok_id = $kelompok->id;
+            $sintaksTahap5->status_tahap = 'tahap_5';
+
+            // Inisialisasi To-Do List dari tugas_anggota di Tahap 3
+            $toDoList = [];
+            $tugasAnggota = json_decode($sintaksTahap3->tugas_anggota, true);
+            foreach ($tugasAnggota as $key => $tugas) {
+                $toDoList[] = [
+                    'tugas' => $tugas,
+                    'anggota' => $kelompok->anggotas[$key]->user->name,
+                    'status' => 'pending', // Status default
+                ];
+            }
+
+            // Konversi array ke JSON sebelum disimpan
+            $sintaksTahap5->to_do_list = json_encode($toDoList);
+            $sintaksTahap5->save();  // Simpan sintaks baru
+            
+            return redirect()->route('user.materi.tahap5', $materi->slug)
+                            ->with('success', 'Silakan mulai mengerjakan tahap 5.');
+        }
+
+        // Pastikan to_do_list selalu berupa array
+        if (is_null($sintaksTahap5->to_do_list)) {
+            $sintaksTahap5->to_do_list = json_encode([]);
+            $sintaksTahap5->save();
+        }
+
+        return view('frontend.user.sintaks.tahap5', compact('materi', 'kelompok', 'sintaksTahap5'));
     }
 
     public function tahap4($slug)
@@ -217,11 +368,23 @@ class MateriController extends Controller
             return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
 
-        // Ambil sintaks tahap 4
         $sintaks = Sintaks::where('materi_id', $materi->id)
-                        ->where('kelompok_id', $kelompok->id)
-                        ->where('status_tahap', 'tahap_4')
-                        ->first();
+        ->where('kelompok_id', $kelompok->id)
+        ->where('status_tahap', 'tahap_4')
+        ->first();
+
+        // Ambil sintaks tahap 4
+        if (!$sintaks) {
+            $sintaks = new Sintaks();
+            $sintaks->materi_id = $materi->id;
+            $sintaks->kelompok_id = $kelompok->id;
+            $sintaks->status_tahap = 'tahap_4';
+            $sintaks->save();  // Simpan sintaks baru
+            
+            // Redirect ke halaman tahap 4 dengan data sintaks yang baru
+            return redirect()->route('user.materi.tahap4', $materi->slug)
+                            ->with('success', 'Silakan mulai mengerjakan tahap 4.');
+        }
 
         return view('frontend.user.sintaks.tahap4', compact('materi', 'kelompok', 'sintaks'));
     }
@@ -245,6 +408,9 @@ class MateriController extends Controller
             return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
     
+        // Simpan file di folder yang aman (storage/app/jadwal_proyek)
+        $filePath = $request->file('file_jadwal')->store('jadwal_proyek', 'public');
+    
         // Menyimpan data tahap 4
         $sintaks = Sintaks::updateOrCreate(
             [
@@ -253,11 +419,12 @@ class MateriController extends Controller
                 'status_tahap' => 'tahap_4',
             ],
             [
-                'file_jadwal' => $request->file('file_jadwal')->store('jadwal_proyek', 'public'), // Simpan file di folder 'public/jadwal_proyek'
+                'file_jadwal' => $filePath, // Simpan path file di database
+                'status_validasi' => 'invalid', // Status validasi awal
             ]
         );
         
-        return redirect()->route('user.materi.sintaks', ['slug' => $slug])->with('success', 'Jadwal berhasil diupload.');
+        return redirect()->route('user.materi.tahap4', ['slug' => $slug])->with('success', 'Jadwal berhasil diupload.');
     }
 
     public function tahap3($slug)
@@ -371,7 +538,7 @@ class MateriController extends Controller
             $sintaks->save();  // Simpan sintaks baru
             
             // Redirect ke halaman tahap 2 dengan data sintaks yang baru
-            return redirect()->route('user.materi.sintaks.tahap2', $materi->slug)
+            return redirect()->route('user.materi.tahap2', $materi->slug)
                              ->with('success', 'Silakan mulai mengerjakan tahap 2.');
         }
     
@@ -448,7 +615,7 @@ class MateriController extends Controller
             $sintaks->save();  // Simpan sintaks baru
     
             // Redirect ke halaman tahap 1 dengan data sintaks yang baru
-            return redirect()->route('user.materi.sintaks.tahap1', $materi->slug)
+            return redirect()->route('user.materi.tahap1', $materi->slug)
                              ->with('success', 'Silakan mulai mengerjakan tahap 1.');
         }
     

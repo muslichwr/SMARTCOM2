@@ -29,22 +29,64 @@
                         </div>
                     @endif
 
-                    <!-- Form Upload File Proyek dan Laporan -->
-                    <form action="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap6') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="mb-4">
-                            <label for="file_proyek" class="block text-sm font-semibold">Upload File Proyek</label>
-                            <input type="file" name="file_proyek" id="file_proyek" class="border border-gray-300 p-2 w-full" required />
+                    <!-- Cek apakah user sudah validasi atau belum -->
+                    @if ($sintaks && $sintaks->status_validasi == 'valid')
+                        <div class="bg-green-100 p-4 rounded-lg mb-4">
+                            <strong>Status Validasi:</strong> <span class="text-green-600">Valid</span>
+                            <p><strong>Feedback Guru:</strong> {{ $sintaks->feedback_guru ?? 'Belum ada feedback' }}</p>
                         </div>
-                        <div class="mb-4">
-                            <label for="file_laporan" class="block text-sm font-semibold">Upload File Laporan</label>
-                            <input type="file" name="file_laporan" id="file_laporan" class="border border-gray-300 p-2 w-full" required />
-                        </div>
+                    @endif
 
-                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
-                            Upload Proyek dan Laporan
-                        </button>
-                    </form>
+                    <!-- Tampilkan file proyek dan laporan jika sudah diunggah -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold">File Proyek</label>
+                        @if ($sintaks && $sintaks->file_proyek)
+                            <div class="mt-2">
+                                <a href="{{ asset('storage/' . $sintaks->file_proyek) }}" target="_blank" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded inline-flex items-center">
+                                    <x-heroicon-o-document-text class="w-5 h-5 mr-2" />
+                                    Buka File Proyek
+                                </a>
+                            </div>
+                        @else
+                            <p class="text-gray-500">Tidak ada file proyek yang diunggah.</p>
+                        @endif
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold">File Laporan</label>
+                        @if ($sintaks && $sintaks->file_laporan)
+                            <div class="mt-2">
+                                <a href="{{ asset('storage/' . $sintaks->file_laporan) }}" target="_blank" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded inline-flex items-center">
+                                    <x-heroicon-o-document-text class="w-5 h-5 mr-2" />
+                                    Buka File Laporan
+                                </a>
+                            </div>
+                        @else
+                            <p class="text-gray-500">Tidak ada file laporan yang diunggah.</p>
+                        @endif
+                    </div>
+
+                    <!-- Form Upload File Proyek dan Laporan -->
+                    @if (!$sintaks || $sintaks->status_validasi != 'valid')
+                        <form action="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap6') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="mb-4">
+                                <label for="file_proyek" class="block text-sm font-semibold">Upload File Proyek</label>
+                                <input type="file" name="file_proyek" id="file_proyek" class="border border-gray-300 p-2 w-full" accept=".pdf,.docx,.xlsx">
+                                <p class="text-sm text-gray-500 mt-1">Format file yang diizinkan: PDF, DOCX, XLSX (Maksimal 10MB).</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="file_laporan" class="block text-sm font-semibold">Upload File Laporan</label>
+                                <input type="file" name="file_laporan" id="file_laporan" class="border border-gray-300 p-2 w-full" accept=".pdf,.docx,.xlsx">
+                                <p class="text-sm text-gray-500 mt-1">Format file yang diizinkan: PDF, DOCX, XLSX (Maksimal 10MB).</p>
+                            </div>
+
+                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
+                                Upload File
+                            </button>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>

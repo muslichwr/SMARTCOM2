@@ -66,6 +66,66 @@
                                 @endif
                             </div>
                         </div>
+
+                        <div class="p-4 bg-white shadow-md rounded-lg flex justify-between items-center">
+                            <span class="font-semibold text-gray-800 text-lg">Tahap 4: Menyusun Jadwal</span>
+                            <div class="flex items-center">
+                                <a href="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap4') }}"
+                                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
+                                    Mulai
+                                </a>
+                                @if ($sintaks->where('status_tahap', 'tahap_4')->first() && $sintaks->where('status_tahap', 'tahap_4')->first()->status_validasi == 'valid')
+                                    <span class="ml-3 text-green-500 font-semibold">Sudah Divalidasi</span>
+                                @else
+                                    <span class="ml-3 text-red-500 font-semibold">Belum Divalidasi</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-white shadow-md rounded-lg flex justify-between items-center">
+                            <span class="font-semibold text-gray-800 text-lg">Tahap 5: Pelaksanaan Proyek</span>
+                            <div class="flex items-center">
+                                <a href="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap5') }}"
+                                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
+                                    Mulai
+                                </a>
+                                @if ($sintaks->where('status_tahap', 'tahap_5')->first() && $sintaks->where('status_tahap', 'tahap_5')->first()->status_validasi == 'valid')
+                                    <span class="ml-3 text-green-500 font-semibold">Sudah Divalidasi</span>
+                                @else
+                                    <span class="ml-3 text-red-500 font-semibold">Belum Divalidasi</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-white shadow-md rounded-lg flex justify-between items-center">
+                            <span class="font-semibold text-gray-800 text-lg">Tahap 6: Pengumpulan Proyek</span>
+                            <div class="flex items-center">
+                                <a href="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap6') }}"
+                                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
+                                    Mulai
+                                </a>
+                                @if ($sintaks->where('status_tahap', 'tahap_6')->first() && $sintaks->where('status_tahap', 'tahap_6')->first()->status_validasi == 'valid')
+                                    <span class="ml-3 text-green-500 font-semibold">Sudah Divalidasi</span>
+                                @else
+                                    <span class="ml-3 text-red-500 font-semibold">Belum Divalidasi</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-white shadow-md rounded-lg flex justify-between items-center">
+                            <span class="font-semibold text-gray-800 text-lg">Tahap 7: Penilaian dan Evaluasi Proyek</span>
+                            <div class="flex items-center">
+                                <a href="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap7') }}"
+                                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
+                                    Mulai
+                                </a>
+                                @if ($sintaks->where('status_tahap', 'tahap_7')->first() && $sintaks->where('status_tahap', 'tahap_7')->first()->status_validasi == 'valid')
+                                    <span class="ml-3 text-green-500 font-semibold">Sudah Divalidasi</span>
+                                @else
+                                    <span class="ml-3 text-red-500 font-semibold">Belum Divalidasi</span>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

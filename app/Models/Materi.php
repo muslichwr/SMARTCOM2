@@ -34,4 +34,10 @@ class Materi extends Model
     {
         return $this->hasMany(PrePost::class, 'materi_id', 'id');
     }
+
+    // Tambahkan relasi sintaks
+    public function sintaks()
+    {
+        return $this->hasMany(Sintaks::class, 'materi_id', 'id');
+    }
 }

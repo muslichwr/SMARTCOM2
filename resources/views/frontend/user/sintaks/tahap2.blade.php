@@ -39,12 +39,12 @@
                         <div class="space-y-4">
                             <div class="mb-4">
                                 <label for="indikator_masalah" class="block text-sm font-semibold">Indikator Masalah</label>
-                                <textarea name="indikator_masalah" id="indikator_masalah" rows="4" class="border border-gray-300 p-2 w-full" disabled>{{ $sintaks->indikator_masalah ?? '' }}</textarea>
+                                <textarea name="indikator_masalah" id="indikator_masalah" rows="4" class="border border-gray-300 p-2 w-full bg-gray-100" disabled>{{ $sintaks->indikator_masalah ?? '' }}</textarea>
                             </div>
 
                             <div class="mb-4">
                                 <label for="hasil_analisis" class="block text-sm font-semibold">Hasil Analisis</label>
-                                <textarea name="hasil_analisis" id="hasil_analisis" rows="4" class="border border-gray-300 p-2 w-full" disabled>{{ $sintaks->hasil_analisis ?? '' }}</textarea>
+                                <textarea name="hasil_analisis" id="hasil_analisis" rows="4" class="border border-gray-300 p-2 w-full bg-gray-100" disabled>{{ $sintaks->hasil_analisis ?? '' }}</textarea>
                             </div>
 
                             <button type="button" class="bg-blue-500 text-white px-6 py-2 rounded cursor-not-allowed opacity-50" disabled>
@@ -57,17 +57,25 @@
                             @csrf
                             <div class="mb-4">
                                 <label for="indikator_masalah" class="block text-sm font-semibold">Indikator Masalah</label>
-                                <textarea name="indikator_masalah" id="indikator_masalah" rows="4" class="border border-gray-300 p-2 w-full" required>{{ $sintaks->indikator_masalah ?? '' }}</textarea>
+                                <textarea name="indikator_masalah" id="indikator_masalah" rows="4" class="border border-gray-300 p-2 w-full" placeholder="Masukkan indikator masalah..." required>{{ $sintaks->indikator_masalah ?? '' }}</textarea>
+                                @error('indikator_masalah')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div class="mb-4">
                                 <label for="hasil_analisis" class="block text-sm font-semibold">Hasil Analisis</label>
-                                <textarea name="hasil_analisis" id="hasil_analisis" rows="4" class="border border-gray-300 p-2 w-full" required>{{ $sintaks->hasil_analisis ?? '' }}</textarea>
+                                <textarea name="hasil_analisis" id="hasil_analisis" rows="4" class="border border-gray-300 p-2 w-full" placeholder="Masukkan hasil analisis..." required>{{ $sintaks->hasil_analisis ?? '' }}</textarea>
+                                @error('hasil_analisis')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
-                                Simpan
-                            </button>
+                            <div class="flex justify-end">
+                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
+                                    Simpan
+                                </button>
+                            </div>
                         </form>
                     @endif
                 </div>

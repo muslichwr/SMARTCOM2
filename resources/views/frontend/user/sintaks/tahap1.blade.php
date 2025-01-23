@@ -39,12 +39,12 @@
                         <div class="space-y-4">
                             <div class="mb-4">
                                 <label for="orientasi_masalah" class="block text-sm font-semibold">Orientasi Masalah</label>
-                                <textarea name="orientasi_masalah" id="orientasi_masalah" rows="4" class="border border-gray-300 p-2 w-full" disabled>{{ $sintaks->orientasi_masalah ?? '' }}</textarea>
+                                <textarea name="orientasi_masalah" id="orientasi_masalah" rows="4" class="border border-gray-300 p-2 w-full bg-gray-100" disabled>{{ $sintaks->orientasi_masalah ?? '' }}</textarea>
                             </div>
 
                             <div class="mb-4">
                                 <label for="rumusan_masalah" class="block text-sm font-semibold">Rumusan Masalah</label>
-                                <textarea name="rumusan_masalah" id="rumusan_masalah" rows="3" class="border border-gray-300 p-2 w-full" disabled>{{ $sintaks->rumusan_masalah ?? '' }}</textarea>
+                                <textarea name="rumusan_masalah" id="rumusan_masalah" rows="3" class="border border-gray-300 p-2 w-full bg-gray-100" disabled>{{ $sintaks->rumusan_masalah ?? '' }}</textarea>
                             </div>
 
                             <button type="button" class="bg-blue-500 text-white px-6 py-2 rounded cursor-not-allowed opacity-50" disabled>
@@ -57,17 +57,25 @@
                             @csrf
                             <div class="mb-4">
                                 <label for="orientasi_masalah" class="block text-sm font-semibold">Orientasi Masalah</label>
-                                <textarea name="orientasi_masalah" id="orientasi_masalah" rows="4" class="border border-gray-300 p-2 w-full" required>{{ $sintaks->orientasi_masalah ?? '' }}</textarea>
+                                <textarea name="orientasi_masalah" id="orientasi_masalah" rows="4" class="border border-gray-300 p-2 w-full" placeholder="Masukkan orientasi masalah..." required>{{ $sintaks->orientasi_masalah ?? '' }}</textarea>
+                                @error('orientasi_masalah')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div class="mb-4">
                                 <label for="rumusan_masalah" class="block text-sm font-semibold">Rumusan Masalah</label>
-                                <textarea name="rumusan_masalah" id="rumusan_masalah" rows="3" class="border border-gray-300 p-2 w-full" required>{{ $sintaks->rumusan_masalah ?? '' }}</textarea>
+                                <textarea name="rumusan_masalah" id="rumusan_masalah" rows="3" class="border border-gray-300 p-2 w-full" placeholder="Masukkan rumusan masalah..." required>{{ $sintaks->rumusan_masalah ?? '' }}</textarea>
+                                @error('rumusan_masalah')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
-                                Simpan
-                            </button>
+                            <div class="flex justify-end">
+                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
+                                    Simpan
+                                </button>
+                            </div>
                         </form>
                     @endif
                 </div>
