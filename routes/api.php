@@ -59,6 +59,15 @@ Route::prefix('user')->middleware(['auth'])->group(function () {
         Route::get('/materi/{bab}/pelajari', 'pelajari');
         Route::post('/materi/{bab}/selesaiMateri', 'selesaikanMateri');
 
+        Route::get('/materi/{slug}/sintaks', 'tampilkanSintaks'); // Menampilkan sintaks berdasarkan materi
+        Route::get('/materi/{slug}/sintaks/tahap1', 'tahap1');
+        Route::post('/materi/{slug}/sintaks/tahap1', 'simpanTahap1');
+        Route::get('/materi/{slug}/sintaks/tahap2', 'tahap2');
+        Route::post('/materi/{slug}/sintaks/tahap2', 'simpanTahap2');
+        Route::get('/materi/{slug}/sintaks/tahap3', 'tahap3');
+        Route::post('/materi/{slug}/sintaks/tahap3', 'simpanTahap3');
+
+
         //Todo: Latihan
         Route::get('/latihan/{materi}', 'bukaLatihan');
         Route::get('/latihan/{latihan}/kerjakan', 'kerjakan');

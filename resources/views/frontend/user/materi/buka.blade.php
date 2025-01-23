@@ -16,15 +16,20 @@
                     </div>
                 @endif
                 <div class="bg-white shadow-md rounded-lg mt-3">
-                    <div class="bg-gray-200 px-4 py-3 rounded-t-lg">
-                        <center>
-                            <h3 class="text-lg font-semibold">Daftar Bab Materi - {{ $judulMateri }}</h3>
-                        </center>
-                        <a href="{{ url('user/materi') }}"
-                            class="flex items-center float-right gap-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 text-sm rounded mt-5 w-max">
-                            <x-heroicon-o-arrow-long-left class="w-5" />
-                            Kembali
-                        </a>
+                    <div class="bg-gray-200 px-4 py-3 rounded-t-lg flex items-center justify-between">
+                        <h3 class="text-lg font-semibold">Daftar Bab Materi - {{ $judulMateri }}</h3>
+                        
+                        <div class="flex gap-2">
+                            <a href="{{ url('user/materi') }}"
+                                class="flex items-center bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 text-sm rounded w-max">
+                                <x-heroicon-o-arrow-long-left class="w-5" />
+                                Kembali
+                            </a>
+                            <a href="{{ url('user/materi/' . $materi->slug . '/sintaks') }}"
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 text-sm rounded">
+                                Lihat Sintaks Materi
+                            </a>
+                        </div>
                     </div>
                     <br>
                     <div class="p-4 mt-3">

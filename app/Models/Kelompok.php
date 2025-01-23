@@ -30,4 +30,9 @@ class Kelompok extends Model
     {
         return $this->hasOneThrough(User::class, Ketua::class, 'kelompok_id', 'id', 'id', 'user_id');
     }
+
+    public function sintaks()
+    {
+        return $this->hasMany(Sintaks::class);
+    }
 }
