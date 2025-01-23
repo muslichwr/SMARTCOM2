@@ -3,6 +3,9 @@
 @section('title', 'Sintaks Materi')
 
 @section('content')
+    <br>
+    <br>
+    <br>
     <div class="bg-white min-h-screen flex items-center justify-center py-10">
         <div class="w-full max-w-3xl mt-5">
             <div class="bg-white shadow-lg rounded-lg mt-3">
@@ -129,6 +132,10 @@
                     </div>
                 </div>
             </div>
+    <br>
+    <br>
+
         </div>
     </div>
+    
 @endsection

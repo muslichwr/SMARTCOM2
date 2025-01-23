@@ -1,6 +1,6 @@
 @extends('layouts.appF')
 
-@section('title', 'Form Tahap 1: Orientasi Masalah')
+@section('title', 'Tahap 1: Orientasi Masalah')
 
 @section('content')
     <div class="bg-white min-h-screen flex items-center justify-center py-10">
@@ -16,38 +16,39 @@
                         Kembali ke Daftar Sintaks
                     </a>
                 </div>
-
+                <br>
                 <div class="p-6">
                     <!-- Menampilkan pesan sukses atau error -->
                     @if (session('success'))
-                        <div class="bg-green-200 p-4 rounded-lg mb-4">
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
                             <strong>{{ session('success') }}</strong>
                         </div>
                     @elseif(session('error'))
-                        <div class="bg-red-200 p-4 rounded-lg mb-4">
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
                             <strong>{{ session('error') }}</strong>
                         </div>
                     @endif
 
                     <!-- Cek apakah user sudah validasi atau belum -->
                     @if ($sintaks && $sintaks->status_validasi == 'valid')
-                        <div class="bg-green-100 p-4 rounded-lg mb-4">
-                            <strong>Status Validasi:</strong> <span class="text-green-600">Valid</span>
-                            <p><strong>Feedback Guru:</strong> {{ $sintaks->feedback_guru ?? 'Belum ada feedback' }}</p>
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
+                            <strong>Status Validasi:</strong> <span class="font-semibold">Valid</span>
+                            <p class="mt-2"><strong>Feedback Guru:</strong> {{ $sintaks->feedback_guru ?? 'Belum ada feedback' }}</p>
                         </div>
 
+                        <!-- Menampilkan data yang sudah divalidasi -->
                         <div class="space-y-4">
                             <div class="mb-4">
-                                <label for="orientasi_masalah" class="block text-sm font-semibold">Orientasi Masalah</label>
-                                <textarea name="orientasi_masalah" id="orientasi_masalah" rows="4" class="border border-gray-300 p-2 w-full bg-gray-100" disabled>{{ $sintaks->orientasi_masalah ?? '' }}</textarea>
+                                <label for="orientasi_masalah" class="block text-sm font-semibold text-gray-700">Orientasi Masalah</label>
+                                <textarea name="orientasi_masalah" id="orientasi_masalah" rows="4" class="border border-gray-300 p-2 w-full bg-gray-100 rounded-lg" disabled>{{ $sintaks->orientasi_masalah ?? '' }}</textarea>
                             </div>
 
                             <div class="mb-4">
-                                <label for="rumusan_masalah" class="block text-sm font-semibold">Rumusan Masalah</label>
-                                <textarea name="rumusan_masalah" id="rumusan_masalah" rows="3" class="border border-gray-300 p-2 w-full bg-gray-100" disabled>{{ $sintaks->rumusan_masalah ?? '' }}</textarea>
+                                <label for="rumusan_masalah" class="block text-sm font-semibold text-gray-700">Rumusan Masalah</label>
+                                <textarea name="rumusan_masalah" id="rumusan_masalah" rows="3" class="border border-gray-300 p-2 w-full bg-gray-100 rounded-lg" disabled>{{ $sintaks->rumusan_masalah ?? '' }}</textarea>
                             </div>
 
-                            <button type="button" class="bg-blue-500 text-white px-6 py-2 rounded cursor-not-allowed opacity-50" disabled>
+                            <button type="button" class="bg-blue-500 text-white px-6 py-2 rounded-lg cursor-not-allowed opacity-50" disabled>
                                 Sudah Divalidasi
                             </button>
                         </div>
@@ -55,24 +56,26 @@
                         <!-- Form Input Tahap 1 -->
                         <form action="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap1') }}" method="POST">
                             @csrf
-                            <div class="mb-4">
-                                <label for="orientasi_masalah" class="block text-sm font-semibold">Orientasi Masalah</label>
-                                <textarea name="orientasi_masalah" id="orientasi_masalah" rows="4" class="border border-gray-300 p-2 w-full" placeholder="Masukkan orientasi masalah..." required>{{ $sintaks->orientasi_masalah ?? '' }}</textarea>
-                                @error('orientasi_masalah')
-                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                                @enderror
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="orientasi_masalah" class="block text-sm font-semibold text-gray-700">Orientasi Masalah</label>
+                                    <textarea name="orientasi_masalah" id="orientasi_masalah" rows="4" class="border border-gray-300 p-2 w-full rounded-lg shadow-sm" placeholder="Masukkan orientasi masalah..." required>{{ $sintaks->orientasi_masalah ?? '' }}</textarea>
+                                    @error('orientasi_masalah')
+                                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label for="rumusan_masalah" class="block text-sm font-semibold text-gray-700">Rumusan Masalah</label>
+                                    <textarea name="rumusan_masalah" id="rumusan_masalah" rows="3" class="border border-gray-300 p-2 w-full rounded-lg shadow-sm" placeholder="Masukkan rumusan masalah..." required>{{ $sintaks->rumusan_masalah ?? '' }}</textarea>
+                                    @error('rumusan_masalah')
+                                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
                             </div>
 
-                            <div class="mb-4">
-                                <label for="rumusan_masalah" class="block text-sm font-semibold">Rumusan Masalah</label>
-                                <textarea name="rumusan_masalah" id="rumusan_masalah" rows="3" class="border border-gray-300 p-2 w-full" placeholder="Masukkan rumusan masalah..." required>{{ $sintaks->rumusan_masalah ?? '' }}</textarea>
-                                @error('rumusan_masalah')
-                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="flex justify-end">
-                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
+                            <div class="mt-6 flex justify-end">
+                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md transition duration-300">
                                     Simpan
                                 </button>
                             </div>

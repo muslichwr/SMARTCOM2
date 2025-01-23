@@ -488,7 +488,7 @@ class MateriController extends Controller
         if (!$kelompok) {
             return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
-
+    
         // Menyimpan data tahap 3 atau update jika sudah ada
         $sintak = Sintaks::updateOrCreate(
             [
@@ -653,7 +653,7 @@ class MateriController extends Controller
             ],
             [
                 'orientasi_masalah' => $request->orientasi_masalah,
-                'rumusan_masalah' => $request->indikator,
+                'rumusan_masalah' => $request->rumusan_masalah,
                 'status_validasi' => 'invalid', // Status validasi awal
             ]
         );

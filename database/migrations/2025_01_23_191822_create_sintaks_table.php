@@ -34,6 +34,7 @@ return new class extends Migration
             $table->integer('score_inheritance')->nullable(); // Nilai untuk Inheritance
             $table->integer('score_logic_function')->nullable(); // Nilai untuk Function and Logic
             $table->integer('score_project_report')->nullable(); // Nilai untuk Project Report
+            $table->integer('total_nilai')->nullable();
             $table->timestamps();
         });
     }

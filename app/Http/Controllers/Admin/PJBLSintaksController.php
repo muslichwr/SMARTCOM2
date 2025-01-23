@@ -39,10 +39,11 @@ class PJBLSintaksController extends Controller
     // Detail sintaks kelompok
     public function detailSintaks(Materi $materi, Kelompok $kelompok)
     {
+        $anggotaKelompok = $kelompok->anggotas;
         $sintaks = Sintaks::where('materi_id', $materi->id)
                           ->where('kelompok_id', $kelompok->id)
                           ->get(); // Ambil semua sintaks kelompok di materi tertentu
-        return view('admin.pjbl.sintaks.detail', compact('materi', 'kelompok', 'sintaks'));
+        return view('admin.pjbl.sintaks.detail', compact('materi', 'anggotaKelompok', 'kelompok', 'sintaks'));
     }
 
     public function updateTahap(Request $request, Materi $materi, Kelompok $kelompok)
@@ -131,31 +132,47 @@ class PJBLSintaksController extends Controller
 
     // Beri nilai dan feedback
     public function beriNilai(Request $request, Materi $materi, Kelompok $kelompok)
-    {
-        $request->validate([
-            'score_class_object' => 'nullable|integer',
-            'score_encapsulation' => 'nullable|integer',
-            'score_inheritance' => 'nullable|integer',
-            'score_logic_function' => 'nullable|integer',
-            'score_project_report' => 'nullable|integer',
-            'feedback_guru' => 'nullable|string',
-        ]);
+{
+    // Validasi input
+    $request->validate([
+        'score_class_object' => 'nullable|integer|min:0|max:20', // Maksimal 20
+        'score_encapsulation' => 'nullable|integer|min:0|max:20', // Maksimal 20
+        'score_inheritance' => 'nullable|integer|min:0|max:20', // Maksimal 20
+        'score_logic_function' => 'nullable|integer|min:0|max:20', // Maksimal 20
+        'score_project_report' => 'nullable|integer|min:0|max:20', // Maksimal 20
+        'feedback_guru' => 'nullable|string',
+    ]);
 
-        $sintaks = Sintaks::where('materi_id', $materi->id)
-                          ->where('kelompok_id', $kelompok->id)
-                          ->where('status_tahap', 'tahap_7')
-                          ->firstOrFail();
+    // Hitung total nilai
+    $totalNilai = $request->score_class_object +
+                  $request->score_encapsulation +
+                  $request->score_inheritance +
+                  $request->score_logic_function +
+                  $request->score_project_report;
 
-        $sintaks->update([
-            'score_class_object' => $request->score_class_object,
-            'score_encapsulation' => $request->score_encapsulation,
-            'score_inheritance' => $request->score_inheritance,
-            'score_logic_function' => $request->score_logic_function,
-            'score_project_report' => $request->score_project_report,
-            'feedback_guru' => $request->feedback_guru,
-            'status_validasi' => 'valid', // Otomatis valid setelah diberi nilai
-        ]);
-
-        return redirect()->back()->with('success', 'Nilai dan feedback berhasil disimpan.');
+    // Validasi total nilai tidak boleh melebihi 100
+    if ($totalNilai > 100) {
+        return redirect()->back()->with('error', 'Total nilai tidak boleh melebihi 100.');
     }
+
+    // Ambil sintaks untuk tahap 7
+    $sintaks = Sintaks::where('materi_id', $materi->id)
+                      ->where('kelompok_id', $kelompok->id)
+                      ->where('status_tahap', 'tahap_7')
+                      ->firstOrFail();
+
+    // Update data sintaks
+    $sintaks->update([
+        'score_class_object' => $request->score_class_object,
+        'score_encapsulation' => $request->score_encapsulation,
+        'score_inheritance' => $request->score_inheritance,
+        'score_logic_function' => $request->score_logic_function,
+        'score_project_report' => $request->score_project_report,
+        'total_nilai' => $totalNilai, // Simpan total nilai
+        'feedback_guru' => $request->feedback_guru,
+        'status_validasi' => 'valid', // Otomatis valid setelah diberi nilai
+    ]);
+
+    return redirect()->back()->with('success', 'Nilai dan feedback berhasil disimpan.');
+}
 }

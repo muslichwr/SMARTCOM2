@@ -16,30 +16,30 @@
                         Kembali ke Daftar Sintaks
                     </a>
                 </div>
-
+                <br>
                 <div class="p-6">
                     <!-- Menampilkan pesan sukses atau error -->
                     @if (session('success'))
-                        <div class="bg-green-200 p-4 rounded-lg mb-4">
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
                             <strong>{{ session('success') }}</strong>
                         </div>
                     @elseif(session('error'))
-                        <div class="bg-red-200 p-4 rounded-lg mb-4">
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
                             <strong>{{ session('error') }}</strong>
                         </div>
                     @endif
 
                     <!-- Cek apakah user sudah validasi atau belum -->
                     @if ($sintaksTahap5 && $sintaksTahap5->status_validasi == 'valid')
-                        <div class="bg-green-100 p-4 rounded-lg mb-4">
-                            <strong>Status Validasi:</strong> <span class="text-green-600">Valid</span>
-                            <p><strong>Feedback Guru:</strong> {{ $sintaksTahap5->feedback_guru ?? 'Belum ada feedback' }}</p>
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
+                            <strong>Status Validasi:</strong> <span class="font-semibold">Valid</span>
+                            <p class="mt-2"><strong>Feedback Guru:</strong> {{ $sintaksTahap5->feedback_guru ?? 'Belum ada feedback' }}</p>
                         </div>
                     @endif
 
                     <!-- Progress Bar -->
                     <div class="mb-6">
-                        <h4 class="text-sm font-semibold mb-2">Progress Proyek</h4>
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Progress Proyek</h4>
                         <div class="w-full bg-gray-200 rounded-full h-2.5">
                             @php
                                 $totalTasks = count(json_decode($sintaksTahap5->to_do_list, true));
@@ -56,7 +56,7 @@
                         <!-- Tampilkan data yang sudah divalidasi -->
                         <div class="space-y-4">
                             @foreach (json_decode($sintaksTahap5->to_do_list, true) as $task)
-                                <div class="bg-white p-4 rounded-lg shadow-md">
+                                <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
                                     <div class="flex items-center justify-between">
                                         <div>
                                             <p class="text-sm font-semibold">{{ $task['tugas'] }}</p>
@@ -128,7 +128,7 @@
                             </div>
 
                             <div class="mt-6 flex justify-end">
-                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors duration-300">
+                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md transition duration-300">
                                     Update Status
                                 </button>
                             </div>

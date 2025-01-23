@@ -16,53 +16,49 @@
                         Kembali ke Daftar Sintaks
                     </a>
                 </div>
-
+                <br>
                 <div class="p-6">
                     <!-- Menampilkan pesan sukses atau error -->
                     @if (session('success'))
-                        <div class="bg-green-200 p-4 rounded-lg mb-4">
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
                             <strong>{{ session('success') }}</strong>
                         </div>
                     @elseif(session('error'))
-                        <div class="bg-red-200 p-4 rounded-lg mb-4">
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
                             <strong>{{ session('error') }}</strong>
                         </div>
                     @endif
 
                     <!-- Cek apakah penilaian sudah dilakukan -->
                     @if ($sintaks && $sintaks->status_validasi == 'valid')
-                        <div class="bg-green-100 p-4 rounded-lg mb-4">
-                            <strong>Status Penilaian:</strong> <span class="text-green-600">Selesai</span>
-                            <p><strong>Feedback Guru:</strong> {{ $sintaks->feedback_guru ?? 'Belum ada feedback' }}</p>
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
+                            <strong>Status Penilaian:</strong> <span class="font-semibold">Selesai</span>
+                            <p class="mt-2"><strong>Feedback Guru:</strong> {{ $sintaks->feedback_guru ?? 'Belum ada feedback' }}</p>
                         </div>
 
                         <!-- Tampilkan total nilai -->
-                        <div class="mb-4">
-                            <h4 class="text-sm font-semibold mb-2">Total Nilai</h4>
-                            <div class="space-y-2">
-                                <p>Class dan Object: {{ $sintaks->score_class_object ?? '0' }}</p>
-                                <p>Encapsulation: {{ $sintaks->score_encapsulation ?? '0' }}</p>
-                                <p>Inheritance: {{ $sintaks->score_inheritance ?? '0' }}</p>
-                                <p>Function and Logic: {{ $sintaks->score_logic_function ?? '0' }}</p>
-                                <p>Project Report: {{ $sintaks->score_project_report ?? '0' }}</p>
-                                <p class="font-semibold">Total: {{ 
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                            <h4 class="text-lg font-semibold text-blue-800 mb-2">Total Nilai</h4>
+                            <p class="text-4xl font-bold text-blue-800">
+                                {{ 
                                     ($sintaks->score_class_object ?? 0) +
                                     ($sintaks->score_encapsulation ?? 0) +
                                     ($sintaks->score_inheritance ?? 0) +
                                     ($sintaks->score_logic_function ?? 0) +
                                     ($sintaks->score_project_report ?? 0)
-                                }}</p>
-                            </div>
+                                }}
+                            </p>
+                            <p class="text-sm text-gray-600 mt-2">Dari total maksimal 100</p>
                         </div>
                     @elseif ($sintaks && $sintaks->status_validasi == 'pending')
-                        <div class="bg-yellow-100 p-4 rounded-lg mb-4">
-                            <strong>Status Penilaian:</strong> <span class="text-yellow-600">Menunggu Penilaian</span>
-                            <p>Silakan menunggu guru untuk memberikan penilaian.</p>
+                        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-lg mb-4">
+                            <strong>Status Penilaian:</strong> <span class="font-semibold">Menunggu Penilaian</span>
+                            <p class="mt-2">Silakan menunggu guru untuk memberikan penilaian.</p>
                         </div>
                     @else
-                        <div class="bg-gray-100 p-4 rounded-lg mb-4">
-                            <strong>Status Penilaian:</strong> <span class="text-gray-600">Belum Diminta</span>
-                            <p>Silakan klik tombol di bawah untuk meminta penilaian dari guru.</p>
+                        <div class="bg-gray-100 border border-gray-300 text-gray-700 px-4 py-3 rounded-lg mb-4">
+                            <strong>Status Penilaian:</strong> <span class="font-semibold">Belum Diminta</span>
+                            <p class="mt-2">Silakan klik tombol di bawah untuk meminta penilaian dari guru.</p>
                         </div>
                     @endif
 
@@ -71,7 +67,7 @@
                         <form action="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap7') }}" method="POST">
                             @csrf
                             <div class="mt-6 flex justify-end">
-                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">
+                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md transition duration-300">
                                     Minta Penilaian
                                 </button>
                             </div>
