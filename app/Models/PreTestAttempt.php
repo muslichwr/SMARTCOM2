@@ -16,16 +16,22 @@ class PreTestAttempt extends Model
     protected $fillable = [
         'pre_post_id',
         'user_id',
-        'status'
+        'status',
+        'total_nilai'
     ];
 
     public function user()
     {
-        return $this->hasOne(User::class, 'id', 'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function prepost()
     {
         return $this->hasOne(PrePost::class, 'id', 'pre_post_id');
+    }
+
+    public function answers()
+    {
+        return $this->hasMany(PreTestAnswer::class, 'pre_test_attempt_id');
     }
 }

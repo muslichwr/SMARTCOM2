@@ -28,6 +28,7 @@
                                 <th class="px-4 py-2">Nama Kelompok</th>
                                 <th class="px-4 py-2">Jumlah Anggota</th>
                                 <th class="px-4 py-2">Ketua</th>
+                                <th class="px-4 py-2">Anggota</th>
                                 <th class="px-4 py-2">Aksi</th>
                             </tr>
                         </thead>
@@ -45,6 +46,13 @@
                                         @endif
                                     </td>
                                     <td class="border px-4 py-2">
+                                        <ul class="list-disc list-inside text-left">
+                                            @foreach ($kel->anggotas as $anggota)
+                                                <li>{{ $anggota->user->name }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </td>
+                                    <td class="border px-4 py-2">
                                         <a href="{{ route('admin.pjbl.sintaks.detail', [$materi, $kel]) }}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 text-sm rounded my-1 inline-block">
                                             Lihat Detail
                                         </a>
@@ -52,7 +60,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td class="border px-4 py-2" colspan="5">Belum Ada Kelompok yang Ditambahkan.</td>
+                                    <td class="border px-4 py-2" colspan="6">Belum Ada Kelompok yang Ditambahkan.</td>
                                 </tr>
                             @endforelse
                         </tbody>

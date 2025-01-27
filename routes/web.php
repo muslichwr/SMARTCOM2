@@ -61,7 +61,7 @@ Route::prefix('user')->middleware(['auth'])->group(function () {
         Route::post('/latihan/jawab', 'jawab');
 
         //Todo: Pre Test
-        Route::get('/pretest', 'bukaPreTest');
+        Route::get('/pretest', 'bukaPreTest')->name('pretest');
         Route::post('/pretest/jawab', 'jawabPreTest');
 
         //Todo: Post Test

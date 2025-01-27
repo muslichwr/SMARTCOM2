@@ -16,7 +16,8 @@ class PostTestAttempt extends Model
     protected $fillable = [
         'pre_post_id',
         'user_id',
-        'status'
+        'status',
+        'total_nilai'
     ];
 
     public function user()

@@ -1216,14 +1216,14 @@ class MateriController extends Controller
         // Menambahkan pre_test_attempt_id, status, dan updated_at ke dalam setiap elemen array
         $typedAnswers = $preTestAnswers->map(function ($answer) {
             $attempt = PreTestAttempt::find($answer->pre_test_attempt_id);
-            $nilai = $answer->nilai;
             return [
                 'pre_test_attempt_id' => $answer->pre_test_attempt_id,
                 'status' => $attempt->status,
+                'created_at' => $attempt->created_at,
                 'updated_at' => $attempt->updated_at,
                 'typed_answer' => $answer->typed_answer,
-                'link_github' => $answer->link_github,
-                'nilai' => $nilai,
+                'nilai' => $answer->nilai,
+                'total_nilai' => $attempt->total_nilai, // Tambahkan total_nilai
             ];
         });
 
@@ -1260,8 +1260,10 @@ class MateriController extends Controller
                     ['created_at' => Carbon::now()]
                 );
 
-                $preTestAttempts = PreTestAttempt::where('user_id', $user->id)->where('pre_post_id', $pretests->id)->get();
-
+                $preTestAttempts = PreTestAttempt::where('user_id', $user->id)
+                ->where('pre_post_id', $pretests->id)
+                ->get(['id', 'status', 'total_nilai', 'created_at', 'updated_at']); // Ambil total_nilai
+            
                 // dd($preTestAttempts);
 
                 return view('frontend.user.pretest.index', [
@@ -1289,131 +1291,58 @@ class MateriController extends Controller
         }
     }
 
-    // public function jawabPreTest(Request $request)
-    // {
-    //     // $pre_test_attempt_id = PreTestAttempt::insertGetId([
-    //     //     'pre_post_id' =>  $request->pre_post_id,
-    //     //     'user_id' => Auth::user()->id,
-    //     //     'link_github' => $request->link_github,
-    //     // ]);
-
-    //     $user_id = Auth::user()->id;
-    //     $pre_post_id = $request->pre_post_id;
-    //     $link_github = $request->link_github;
-
-    //     // Cek apakah sudah ada data PreTestAttempt untuk user dan pre_post_id yang sesuai
-    //     $preTestAttempt = PreTestAttempt::updateOrInsert(
-    //         ['user_id' => $user_id, 'pre_post_id' => $pre_post_id],
-    //         ['link_github' => $link_github]
-    //     );
-
-    //     // Ambil atau buat objek PreTestAttempt berdasarkan user_id dan pre_post_id
-    //     $preTestAttempt = PreTestAttempt::where('user_id', $user_id)
-    //         ->where('pre_post_id', $pre_post_id)
-    //         ->first();
-
-    //     $pre_test_attempt_id = $preTestAttempt->id;
-
-    //     $qcount = count($request->q);
-
-    //     $isAllCorrect = true;
-
-    //     if ($qcount > 0) {
-    //         for ($i = 0; $i < $qcount; $i++) {
-    //             $typedAnswer = strtolower($request->input('ans_' . ($i + 1)));
-
-    //             $now = Carbon::now();
-
-    //             PreTestAnswer::insert([
-    //                 'pre_test_attempt_id' => $pre_test_attempt_id,
-    //                 'soal_id' => $request->q[$i],
-    //                 'typed_answer' => $typedAnswer,
-    //                 'created_at' => $now,
-    //             ]);
-
-    //             //Todo: Check typed_answer dan answer apakah sama
-    //             $isCorrect = $this->checkPreTestAnswer($request->q[$i], $typedAnswer);
-
-    //             if (!$isCorrect) {
-    //                 $isAllCorrect = false;
-    //             }
-    //         }
-    //     }
-
-    //     $status = $isAllCorrect ? 2 : 1;
-
-    //     PreTestAttempt::where('id', $pre_test_attempt_id)->update([
-    //         'status' => $status
-    //     ]);
-
-    //     $message = ($status == 2) ? 'Selamat Anda Berhasil Menyelesaikan Pre Test' : 'Selamat Anda Berhasil Menyelesaikan Pre Test';
-
-    //     return Redirect::back()->with('message', $message);
-    // }
-
     public function jawabPreTest(Request $request)
     {
-        // Ambil data user dan pre_post_id dari request
         $user_id = Auth::user()->id;
         $pre_post_id = $request->pre_post_id;
-        $link_github = $request->link_github;
-
-        // Cek apakah sudah ada data PreTestAttempt untuk user dan pre_post_id yang sesuai
-        $preTestAttempt = PreTestAttempt::updateOrInsert(
+    
+        // Cari atau buat PreTestAttempt
+        $preTestAttempt = PreTestAttempt::updateOrCreate(
             ['user_id' => $user_id, 'pre_post_id' => $pre_post_id],
-            ['link_github' => $link_github]
+            ['created_at' => Carbon::now()]
         );
-
-        // Ambil atau buat objek PreTestAttempt berdasarkan user_id dan pre_post_id
-        $preTestAttempt = PreTestAttempt::where('user_id', $user_id)
-            ->where('pre_post_id', $pre_post_id)
-            ->first();
-
+    
         $pre_test_attempt_id = $preTestAttempt->id;
-
         $qcount = count($request->q);
-
         $isAllCorrect = true;
-
+        $totalNilai = 0; // Inisialisasi total nilai
+    
         if ($qcount > 0) {
             for ($i = 0; $i < $qcount; $i++) {
                 $typedAnswer = strtolower($request->input('ans_' . ($i + 1)));
-
-                $now = Carbon::now();
-
-                // Simpan jawaban dalam database
-                PreTestAnswer::insert([
+    
+                // Simpan jawaban
+                PreTestAnswer::create([
                     'pre_test_attempt_id' => $pre_test_attempt_id,
                     'soal_id' => $request->q[$i],
                     'typed_answer' => $typedAnswer,
-                    'created_at' => $now,
+                    'created_at' => Carbon::now(),
                 ]);
-
+    
                 // Periksa jawaban
                 $isCorrect = $this->checkPreTestAnswer($request->q[$i], $typedAnswer);
-
-                if ($isCorrect) {
-                    // Jika jawaban benar, tambahkan nilai 10 ke dalam table pre_tests_answer
-                    PreTestAnswer::where('pre_test_attempt_id', $pre_test_attempt_id)
-                        ->where('soal_id', $request->q[$i])
-                        ->update(['nilai' => 10]);
-                } else {
-                    $isAllCorrect = false;
-                }
+                $nilai = $isCorrect ? 10 : 0; // Hitung nilai per jawaban
+                $totalNilai += $nilai; // Akumulasi total nilai
+    
+                // Update nilai jawaban
+                PreTestAnswer::where('pre_test_attempt_id', $pre_test_attempt_id)
+                    ->where('soal_id', $request->q[$i])
+                    ->update(['nilai' => $nilai]);
             }
         }
-
-        // Tentukan status berdasarkan apakah semua jawaban benar
+    
+        // Update total_nilai di PreTestAttempt
+        $preTestAttempt->update(['total_nilai' => $totalNilai]);
+    
+        // Tentukan status
         $status = $isAllCorrect ? 2 : 1;
-
-        // Update status pada PreTestAttempt
-        PreTestAttempt::where('id', $pre_test_attempt_id)->update([
-            'status' => $status
-        ]);
-
-        // Tentukan pesan berdasarkan status
-        $message = ($status == 2) ? 'Selamat Anda Berhasil Menyelesaikan Pre Test' : 'Selamat Anda Berhasil Menyelesaikan Pre Test';
-
+        $preTestAttempt->update(['status' => $status]);
+    
+        // Pesan sukses
+        $message = ($status == 2) 
+            ? 'Selamat, Anda berhasil menyelesaikan Pre Test dengan sempurna!' 
+            : 'Selamat, Anda berhasil menyelesaikan Pre Test!';
+    
         return Redirect::back()->with('message', $message);
     }
 
@@ -1429,152 +1358,144 @@ class MateriController extends Controller
     public function bukaPostTest()
     {
         $user = Auth::user();
-
+    
         // Memeriksa apakah user sudah login
         if (!$user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-
+    
+        // Ambil data PostTest berdasarkan judul "Post Test"
         $qnaPostTest = PrePost::where('judulPrePost', 'Post Test')->with('getPrePostTest')->get();
-
+    
+        // Jika tidak ada data PostTest
+        if ($qnaPostTest->isEmpty()) {
+            return view('frontend.user.posttest.index', [
+                'success' => false,
+                'msg' => 'Post Test tidak ditemukan. Silakan hubungi administrator.',
+                'quiz' => collect(), // Kirim koleksi kosong untuk menghindari error
+            ]);
+        }
+    
+        // Jika ada data PostTest, lanjutkan proses
         $postTestAttemptsAnswer = PostTestAttempt::where('user_id', $user->id)->where('pre_post_id', 4)->get();
-
-        // Mengambil semua id dari postTestAttempt
         $postTestAttemptIds = $postTestAttemptsAnswer->pluck('id');
-
-        // Mengambil PreTestAnswer yang memiliki pre_test_attempt_id sesuai dengan preTestAttemptsIds
         $postTestAnswers = PostTestAnswer::whereIn('post_test_attempt_id', $postTestAttemptIds)->get();
-
-        // Menambahkan pre_test_attempt_id, status, dan updated_at ke dalam setiap elemen array
+    
+        // Format data jawaban
         $typedAnswers = $postTestAnswers->map(function ($answer) {
             $attempt = PostTestAttempt::find($answer->post_test_attempt_id);
-            $nilai = $answer->nilai;
             return [
                 'post_test_attempt_id' => $answer->post_test_attempt_id,
                 'status' => $attempt->status,
+                'created_at' => $attempt->created_at,
                 'updated_at' => $attempt->updated_at,
                 'typed_answer' => $answer->typed_answer,
-                'link_github' => $answer->link_github,
-                'nilai' => $nilai,
+                'nilai' => $answer->nilai,
+                'total_nilai' => $attempt->total_nilai, // Tambahkan total_nilai
             ];
         });
-
-        // Mengonversi hasil ke dalam bentuk string jika diperlukan
-        $typedAnswersString = $postTestAnswers->implode(', ');
-
+    
+        // Ambil data PostTestAttempt yang sudah benar
         $postTestAttemptsAnswer2 = PostTestAttempt::where('user_id', $user->id)->where('pre_post_id', 4)->where('status', 2)->get();
-
         $postTestAttemptIdsBenar = $postTestAttemptsAnswer2->pluck('id');
-
         $postTestAnswers2 = PostTestAnswer::whereIn('post_test_attempt_id', $postTestAttemptIdsBenar)->get('typed_answer');
-
-        if (count($qnaPostTest) > 0) {
-            if (count($qnaPostTest[0]['getPrePostTest']) > 0) {
-
-                $qna = PrePostTest::where('pre_post_id', $qnaPostTest[0]['id'])->with('question', 'jawaban')->get();
-
-                $posttests = PrePost::where('id', 4)->with('materi')->first();
-
-                // dd($posttests);
-
-                $materiId = $posttests->materi->id;
-
-                $nextLatihan = PrePost::where('materi_id', $materiId)->where('id', '>', $posttests)->with('materi')->orderBy('id', 'asc')->first();
-
-                $materis = Materi::findOrFail($materiId)->withCount('preposts')->orderBy('id', 'asc');
-
-                PostTestAttempt::updateOrCreate(
-                    ['user_id' => $user->id, 'pre_post_id' => $posttests->id],
-                    ['created_at' => Carbon::now()]
-                );
-
-                $postTestAttempts = PostTestAttempt::where('user_id', $user->id)->where('pre_post_id', $posttests->id)->get();
-
-                return view('frontend.user.posttest.index', [
-                    'success' => true,
-                    'quiz' => $qnaPostTest,
-                    'qna' => $qna,
-                    'posttests' => $posttests,
-                    'materiId' => $materiId,
-                    'nextLatihan' => $nextLatihan,
-                    'materis' => $materis,
-                    'postTestAttempts' => $postTestAttempts,
-                    'typedAnswers' => $typedAnswers,
-                    'postTestAnswer2' => $postTestAnswers2,
-                    'postTestAttemptsAnswer' => $postTestAttemptsAnswer
-                ]);
-            } else {
-
-                return view('frontend.user.posttest.index', [
-                    'success' => false,
-                    'msg' => 'Post Test ini belum tersedia',
-                    'quiz' => $qnaPostTest
-                ]);
-            }
-        } else {
-
-            return abort(404);
+    
+        // Jika tidak ada pertanyaan di PostTest
+        if (count($qnaPostTest[0]['getPrePostTest']) == 0) {
+            return view('frontend.user.posttest.index', [
+                'success' => false,
+                'msg' => 'Post Test ini belum tersedia. Silakan hubungi administrator.',
+                'quiz' => $qnaPostTest,
+            ]);
         }
+    
+        // Jika ada pertanyaan, lanjutkan proses
+        $qna = PrePostTest::where('pre_post_id', $qnaPostTest[0]['id'])->with('question', 'jawaban')->get();
+        $posttests = PrePost::where('id', 4)->with('materi')->first();
+        $materiId = $posttests->materi->id;
+        $nextLatihan = PrePost::where('materi_id', $materiId)->where('id', '>', $posttests)->with('materi')->orderBy('id', 'asc')->first();
+        $materis = Materi::findOrFail($materiId)->withCount('preposts')->orderBy('id', 'asc');
+    
+        // Update atau buat PostTestAttempt
+        PostTestAttempt::updateOrCreate(
+            ['user_id' => $user->id, 'pre_post_id' => $posttests->id],
+            ['created_at' => Carbon::now()]
+        );
+    
+        // Ambil data PostTestAttempt
+        $postTestAttempts = PostTestAttempt::where('user_id', $user->id)
+            ->where('pre_post_id', $posttests->id)
+            ->get(['id', 'status', 'total_nilai', 'created_at', 'updated_at']);
+    
+        // Kirim data ke view
+        return view('frontend.user.posttest.index', [
+            'success' => true,
+            'quiz' => $qnaPostTest,
+            'qna' => $qna,
+            'posttests' => $posttests,
+            'materiId' => $materiId,
+            'nextLatihan' => $nextLatihan,
+            'materis' => $materis,
+            'postTestAttempts' => $postTestAttempts,
+            'typedAnswers' => $typedAnswers,
+            'postTestAnswer2' => $postTestAnswers2,
+            'postTestAttemptsAnswer' => $postTestAttemptsAnswer,
+        ]);
     }
 
     public function jawabPostTest(Request $request)
     {
-        // Ambil data user dan pre_post_id dari request
         $user_id = Auth::user()->id;
         $pre_post_id = $request->pre_post_id;
         $link_github = $request->link_github;
-
-        // Cek apakah sudah ada data PreTestAttempt untuk user dan pre_post_id yang sesuai
-        $postTestAttempt = PostTestAttempt::updateOrInsert(
+    
+        // Cari atau buat PostTestAttempt
+        $postTestAttempt = PostTestAttempt::updateOrCreate(
             ['user_id' => $user_id, 'pre_post_id' => $pre_post_id],
-            ['link_github' => $link_github]
+            ['created_at' => Carbon::now(), 'link_github' => $link_github]
         );
-
-        // Ambil atau buat objek PreTestAttempt berdasarkan user_id dan pre_post_id
-        $postTestAttempt = PostTestAttempt::where('user_id', $user_id)->where('pre_post_id', $pre_post_id)->first();
-
+    
         $post_test_attempt_id = $postTestAttempt->id;
-
         $qcount = count($request->q);
-
         $isAllCorrect = true;
-
+        $totalNilai = 0; // Inisialisasi total nilai
+    
         if ($qcount > 0) {
             for ($i = 0; $i < $qcount; $i++) {
                 $typedAnswer = strtolower($request->input('ans_' . ($i + 1)));
-
-                $now = Carbon::now();
-
-                PostTestAnswer::insert([
+    
+                // Simpan jawaban
+                PostTestAnswer::create([
                     'post_test_attempt_id' => $post_test_attempt_id,
                     'soal_id' => $request->q[$i],
                     'typed_answer' => $typedAnswer,
-                    'created_at' => $now,
+                    'created_at' => Carbon::now(),
                 ]);
-
+    
                 // Periksa jawaban
                 $isCorrect = $this->checkPostTestAnswer($request->q[$i], $typedAnswer);
-
-                if ($isCorrect) {
-                    // Jika jawaban benar, tambahkan nilai 10 ke dalam table post_tests_answer
-                    PostTestAnswer::where('post_test_attempt_id', $post_test_attempt_id)->where('soal_id', $request->q[$i])->update(['nilai' => 10]);
-                } else {
-                    $isAllCorrect = false;
-                }
+                $nilai = $isCorrect ? 10 : 0; // Hitung nilai per jawaban
+                $totalNilai += $nilai; // Akumulasi total nilai
+    
+                // Update nilai jawaban
+                PostTestAnswer::where('post_test_attempt_id', $post_test_attempt_id)
+                    ->where('soal_id', $request->q[$i])
+                    ->update(['nilai' => $nilai]);
             }
         }
-
-        // Tentukan status berdasarkan apakah semua jawaban benar
+    
+        // Update total_nilai di PostTestAttempt
+        $postTestAttempt->update(['total_nilai' => $totalNilai]);
+    
+        // Tentukan status
         $status = $isAllCorrect ? 2 : 1;
-
-        // Update status pada PreTestAttempt
-        PostTestAttempt::where('id', $post_test_attempt_id)->update([
-            'status' => $status
-        ]);
-
-        // Tentukan pesan berdasarkan status
-        $message = ($status == 2) ? 'Selamat Anda Berhasil Menyelesaikan Post Test' : 'Selamat Anda Berhasil Menyelesaikan Post Test';
-
+        $postTestAttempt->update(['status' => $status]);
+    
+        // Pesan sukses
+        $message = ($status == 2) 
+            ? 'Selamat, Anda berhasil menyelesaikan Post Test dengan sempurna!' 
+            : 'Selamat, Anda berhasil menyelesaikan Post Test!';
+    
         return Redirect::back()->with('message', $message);
     }
 

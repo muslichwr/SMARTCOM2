@@ -69,15 +69,15 @@
                         aria-current="page">Bantuan</a>
                 </li>
                 @if(Auth::check() && (Auth::user()->role_as == 1 || Auth::user()->role_as == 2))
-                    <!-- Menampilkan link untuk admin dan guru yang akan mengarah ke dashboard -->
-                    <li>
-                        <a href="{{ url('/admin/dashboard') }}"
-                            class="{{ request()->is('admin/dashboard') ? 'text-white md:text-blue-700 bg-blue-700 md:dark:text-blue-500' : 'text-gray-900' }} md:bg-transparent block py-2 px-3 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-                            aria-current="page">
-                            Dashboard
-                        </a>
-                    </li>
-                @endif
+                <!-- Menampilkan link untuk admin dan guru yang akan mengarah ke dashboard -->
+                <li>
+                    <a href="{{ url('/admin/dashboard') }}"
+                        class="{{ request()->is('admin/dashboard') ? 'text-white md:text-blue-700 bg-blue-700 md:dark:text-blue-500' : 'text-gray-900' }} md:bg-transparent block py-2 px-3 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                        aria-current="page">
+                        Dashboard
+                    </a>
+                </li>
+            @endif
             </ul>
         </div>
     </div>
