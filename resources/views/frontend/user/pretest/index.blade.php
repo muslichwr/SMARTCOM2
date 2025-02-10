@@ -31,14 +31,20 @@
                 </header>
 
                 <!-- Pesan Sukses atau Error -->
-                @if (session('message'))
-                    <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-6" role="alert">
-                        {{ session('message') }}
+                @if (session('success'))
+                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+                        {{ session('error') }}
                     </div>
                 @endif
 
                 <!-- Form Jawaban Pre Test -->
-                @if ($success == true)
+                @if ($success)
                     @if (count($qna) > 0)
                         <form class="max-w-sm mx-auto" action="{{ url('user/pretest/jawab') }}" method="POST" id="pretest_form">
                             @csrf
@@ -63,18 +69,35 @@
                                     </button>
                                 </div>
                             @else
-                                <p class="text-center text-green-500">Anda telah selesai mengerjakan pre test ini.</p>
+                                <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
+                                    <h3 class="text-lg font-semibold mb-2">Hasil Terakhir</h3>
+                                    <p class="text-2xl font-bold text-blue-600">
+                                        {{ number_format($preTestAttempts->first()->total_nilai, 2) }}%
+                                        <span class="text-sm ml-2">
+                                            ({{ $preTestAttempts->first()->status == 2 ? 'Lulus' : 'Perlu Perbaikan' }})
+                                        </span>
+                                    </p>
+                                    <p class="text-sm text-gray-600 mt-2">
+                                        Terakhir dikerjakan: {{ $preTestAttempts->first()->updated_at->format('d M Y H:i') }}
+                                    </p>
+                                </div>
                             @endif
                         </form>
                     @else
                         <h3 class="text-center text-red-500">Latihan belum tersedia!</h3>
                     @endif
                 @else
-                    <h3 class="text-center text-red-500">{{ $msg }}</h3>
+                    <h3 class="text-center text-red-500">Pre Test tidak ditemukan!</h3>
                 @endif
 
-                <!-- Riwayat Pengerjaan -->
-                @if ($success == true && $typedAnswers->isNotEmpty())
+                <!-- Menampilkan Nilai -->
+                @if (session('message'))
+                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
+                        {{ session('message') }}
+                    </div>
+                @endif
+
+                @if ($preTestAttempts && $preTestAttempts->isNotEmpty())
                     <div class="mt-8">
                         <h3 class="text-xl font-bold mb-4">Riwayat Pengerjaan</h3>
                         <div class="overflow-x-auto">
@@ -82,22 +105,20 @@
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="px-4 py-2 border">No</th>
-                                        <th class="px-4 py-2 border">Jawaban Pre Test</th>
-                                        <th class="px-4 py-2 border">Nilai Jawaban</th>
+                                        <th class="px-4 py-2 border">Status</th>
                                         <th class="px-4 py-2 border">Total Nilai</th>
                                         <th class="px-4 py-2 border">Mulai</th>
                                         <th class="px-4 py-2 border">Selesai</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($typedAnswers as $index => $answer)
+                                    @foreach ($preTestAttempts as $attempt)
                                         <tr class="text-center">
                                             <td class="border px-4 py-2">{{ $loop->iteration }}</td>
-                                            <td class="border px-4 py-2">{{ $answer['typed_answer'] }}</td>
-                                            <td class="border px-4 py-2">{{ $answer['nilai'] }}</td>
-                                            <td class="border px-4 py-2">{{ $answer['total_nilai'] }}</td>
-                                            <td class="border px-4 py-2">{{ $answer['created_at'] }}</td>
-                                            <td class="border px-4 py-2">{{ $answer['updated_at'] }}</td>
+                                            <td class="border px-4 py-2">{{ $attempt['status'] == 2 ? 'Lulus' : 'Remidi' }}</td>
+                                            <td class="border px-4 py-2">{{ number_format($attempt['total_nilai'], 2) }}%</td>
+                                            <td class="border px-4 py-2">{{ $attempt['created_at'] }}</td>
+                                            <td class="border px-4 py-2">{{ $attempt['updated_at'] }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

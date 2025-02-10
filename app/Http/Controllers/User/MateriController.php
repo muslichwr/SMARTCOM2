@@ -1295,22 +1295,22 @@ class MateriController extends Controller
     {
         $user_id = Auth::user()->id;
         $pre_post_id = $request->pre_post_id;
-    
+        
         // Cari atau buat PreTestAttempt
         $preTestAttempt = PreTestAttempt::updateOrCreate(
             ['user_id' => $user_id, 'pre_post_id' => $pre_post_id],
             ['created_at' => Carbon::now()]
         );
-    
+        
         $pre_test_attempt_id = $preTestAttempt->id;
         $qcount = count($request->q);
-        $isAllCorrect = true;
+        $correctAnswersCount = 0; // Hitung jumlah soal yang benar
         $totalNilai = 0; // Inisialisasi total nilai
-    
+        
         if ($qcount > 0) {
             for ($i = 0; $i < $qcount; $i++) {
                 $typedAnswer = strtolower($request->input('ans_' . ($i + 1)));
-    
+        
                 // Simpan jawaban
                 PreTestAnswer::create([
                     'pre_test_attempt_id' => $pre_test_attempt_id,
@@ -1318,11 +1318,14 @@ class MateriController extends Controller
                     'typed_answer' => $typedAnswer,
                     'created_at' => Carbon::now(),
                 ]);
-    
+        
                 // Periksa jawaban
                 $isCorrect = $this->checkPreTestAnswer($request->q[$i], $typedAnswer);
-                $nilai = $isCorrect ? 10 : 0; // Hitung nilai per jawaban
-                $totalNilai += $nilai; // Akumulasi total nilai
+                $nilai = $isCorrect ? 10 : 0; // Nilai per soal
+        
+                if ($isCorrect) {
+                    $correctAnswersCount++; // Tambah jumlah soal yang benar
+                }
     
                 // Update nilai jawaban
                 PreTestAnswer::where('pre_test_attempt_id', $pre_test_attempt_id)
@@ -1331,18 +1334,21 @@ class MateriController extends Controller
             }
         }
     
+        // Hitung total nilai dalam format desimal
+        $totalNilai = ($correctAnswersCount / $qcount) * 100;
+    
         // Update total_nilai di PreTestAttempt
-        $preTestAttempt->update(['total_nilai' => $totalNilai]);
-    
+        $preTestAttempt->update(['total_nilai' => number_format($totalNilai, 2, '.', '')]);
+        
         // Tentukan status
-        $status = $isAllCorrect ? 2 : 1;
+        $status = ($correctAnswersCount === $qcount) ? 2 : 1;
         $preTestAttempt->update(['status' => $status]);
-    
+        
         // Pesan sukses
         $message = ($status == 2) 
             ? 'Selamat, Anda berhasil menyelesaikan Pre Test dengan sempurna!' 
             : 'Selamat, Anda berhasil menyelesaikan Pre Test!';
-    
+        
         return Redirect::back()->with('message', $message);
     }
 
@@ -1358,25 +1364,25 @@ class MateriController extends Controller
     public function bukaPostTest()
     {
         $user = Auth::user();
-    
+        
         // Memeriksa apakah user sudah login
         if (!$user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
     
         // Ambil data PostTest berdasarkan judul "Post Test"
-        $qnaPostTest = PrePost::where('judulPrePost', 'Post Test')->with('getPrePostTest')->get();
+        $posttests = PrePost::where('judulPrePost', 'Post Test')->with('materi')->first(); 
     
-        // Jika tidak ada data PostTest
-        if ($qnaPostTest->isEmpty()) {
+        // Periksa apakah $posttests ditemukan dan materi ada
+        if (!$posttests || !$posttests->materi) {
             return view('frontend.user.posttest.index', [
                 'success' => false,
-                'msg' => 'Post Test tidak ditemukan. Silakan hubungi administrator.',
+                'msg' => 'Post Test atau Materi tidak ditemukan.',
                 'quiz' => collect(), // Kirim koleksi kosong untuk menghindari error
             ]);
         }
     
-        // Jika ada data PostTest, lanjutkan proses
+        // Mengambil data PostTestAttempts yang sudah ada untuk user
         $postTestAttemptsAnswer = PostTestAttempt::where('user_id', $user->id)->where('pre_post_id', 4)->get();
         $postTestAttemptIds = $postTestAttemptsAnswer->pluck('id');
         $postTestAnswers = PostTestAnswer::whereIn('post_test_attempt_id', $postTestAttemptIds)->get();
@@ -1395,25 +1401,24 @@ class MateriController extends Controller
             ];
         });
     
-        // Ambil data PostTestAttempt yang sudah benar
+        // Mengambil data PostTestAttempt yang sudah benar
         $postTestAttemptsAnswer2 = PostTestAttempt::where('user_id', $user->id)->where('pre_post_id', 4)->where('status', 2)->get();
         $postTestAttemptIdsBenar = $postTestAttemptsAnswer2->pluck('id');
         $postTestAnswers2 = PostTestAnswer::whereIn('post_test_attempt_id', $postTestAttemptIdsBenar)->get('typed_answer');
     
         // Jika tidak ada pertanyaan di PostTest
-        if (count($qnaPostTest[0]['getPrePostTest']) == 0) {
+        $qna = PrePostTest::where('pre_post_id', $posttests->id)->with('question', 'jawaban')->get();
+        if ($qna->isEmpty()) {
             return view('frontend.user.posttest.index', [
                 'success' => false,
                 'msg' => 'Post Test ini belum tersedia. Silakan hubungi administrator.',
-                'quiz' => $qnaPostTest,
+                'quiz' => $qna,
             ]);
         }
     
-        // Jika ada pertanyaan, lanjutkan proses
-        $qna = PrePostTest::where('pre_post_id', $qnaPostTest[0]['id'])->with('question', 'jawaban')->get();
-        $posttests = PrePost::where('id', 4)->with('materi')->first();
+        // Mengambil data materi dan latihannya yang akan datang
         $materiId = $posttests->materi->id;
-        $nextLatihan = PrePost::where('materi_id', $materiId)->where('id', '>', $posttests)->with('materi')->orderBy('id', 'asc')->first();
+        $nextLatihan = PrePost::where('materi_id', $materiId)->where('id', '>', $posttests->id)->with('materi')->orderBy('id', 'asc')->first();
         $materis = Materi::findOrFail($materiId)->withCount('preposts')->orderBy('id', 'asc');
     
         // Update atau buat PostTestAttempt
@@ -1430,7 +1435,7 @@ class MateriController extends Controller
         // Kirim data ke view
         return view('frontend.user.posttest.index', [
             'success' => true,
-            'quiz' => $qnaPostTest,
+            'quiz' => $qna,
             'qna' => $qna,
             'posttests' => $posttests,
             'materiId' => $materiId,
@@ -1447,19 +1452,17 @@ class MateriController extends Controller
     {
         $user_id = Auth::user()->id;
         $pre_post_id = $request->pre_post_id;
-        $link_github = $request->link_github;
-    
+        
         // Cari atau buat PostTestAttempt
         $postTestAttempt = PostTestAttempt::updateOrCreate(
             ['user_id' => $user_id, 'pre_post_id' => $pre_post_id],
-            ['created_at' => Carbon::now(), 'link_github' => $link_github]
         );
     
         $post_test_attempt_id = $postTestAttempt->id;
         $qcount = count($request->q);
-        $isAllCorrect = true;
-        $totalNilai = 0; // Inisialisasi total nilai
-    
+        $totalNilai = 0.00; // Nilai default decimal
+        
+        // Hitung nilai berdasarkan jumlah soal
         if ($qcount > 0) {
             for ($i = 0; $i < $qcount; $i++) {
                 $typedAnswer = strtolower($request->input('ans_' . ($i + 1)));
@@ -1472,23 +1475,23 @@ class MateriController extends Controller
                     'created_at' => Carbon::now(),
                 ]);
     
-                // Periksa jawaban
+                // Periksa jawaban dan hitung nilai
                 $isCorrect = $this->checkPostTestAnswer($request->q[$i], $typedAnswer);
-                $nilai = $isCorrect ? 10 : 0; // Hitung nilai per jawaban
-                $totalNilai += $nilai; // Akumulasi total nilai
+                $nilai = $isCorrect ? (100.00 / $qcount) : 0.00; // Nilai per soal berdasarkan total soal
+                $totalNilai += $nilai; // Akumulasi nilai total
     
-                // Update nilai jawaban
+                // Update nilai jawaban pada tabel PostTestAnswer
                 PostTestAnswer::where('post_test_attempt_id', $post_test_attempt_id)
                     ->where('soal_id', $request->q[$i])
                     ->update(['nilai' => $nilai]);
             }
         }
     
-        // Update total_nilai di PostTestAttempt
-        $postTestAttempt->update(['total_nilai' => $totalNilai]);
+        // Update total_nilai di PostTestAttempt dengan nilai decimal
+        $postTestAttempt->update(['total_nilai' => number_format($totalNilai, 2)]); // Format ke decimal dengan dua angka di belakang koma
     
-        // Tentukan status
-        $status = $isAllCorrect ? 2 : 1;
+        // Tentukan status berdasarkan hasil jawaban
+        $status = ($totalNilai == 100.00) ? 2 : 1; // Status sukses atau tidak
         $postTestAttempt->update(['status' => $status]);
     
         // Pesan sukses
