@@ -6,6 +6,7 @@ use App\Models\Bab;
 use App\Models\Materi;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BabFormRequest;
 use App\Models\BabAttempt;
@@ -106,8 +107,18 @@ class BabController extends Controller
 
     public function destroy(Bab $bab)
     {
-        $bab->delete();
-        alert()->success('Hore!', 'Bab Berhasil Dihapus.');
+        try {
+            // Hapus file dari storage jika ada
+            if ($bab->file_path && Storage::disk('public')->exists($bab->file_path)) {
+                Storage::disk('public')->delete($bab->file_path);
+            }
+            
+            $bab->delete();
+            alert()->success('Hore!', 'Bab Berhasil Dihapus.');
+        } catch (\Exception $e) {
+            alert()->error('Error!', 'Gagal menghapus bab: ' . $e->getMessage());
+        }
+        
         return back();
     }
 }

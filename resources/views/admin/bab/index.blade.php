@@ -62,8 +62,9 @@
                                         <form action="{{ url('admin/bab/' . $bab->id) }}" method="POST" style="display: inline;">
                                             @csrf
                                             @method('DELETE')
-                                            <button data-confirm-delete="true" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-sm rounded my-1 inline-block"
-                                            onclick="return confirm('Are you sure?')">Delete</button>
+                                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-sm rounded my-1 inline-block confirm-delete">
+                                                Delete
+                                            </button>
                                         </form>
                                     </td>
                                 </tr>
