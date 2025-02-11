@@ -30,27 +30,34 @@
                 </header>
 
                 {{-- Interactive Media Section --}}
-                @if ($bab && ($bab->file_path || $bab->video_url))
-                    <div class="media-container mb-4">
-                        <button id="toggleMedia" class="mb-2 text-sm bg-blue-500 text-white rounded p-2 transition duration-300 ease-in-out hover:bg-blue-600 shadow-md">
-                            Tampilkan Media
-                        </button>
-                        <div id="mediaContent" class="hidden">
-                            @if ($bab->file_path)
-                                <div class="pdf-viewer">
-                                    <iframe src="{{ asset('storage/' . $bab->file_path) }}" width="100%" height="600px" style="border: none;"></iframe>
-                                </div>
-                            @endif
-                            @if ($bab->video_url)
-                                @php
-                                    $videoId = explode('?v=', $bab->video_url)[1];
-                                @endphp
-                                <div class="video-responsive">
-                                    <iframe width="560" height="315" src="https://www.youtube.com/embed/{{ $videoId }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                                </div>
-                            @endif
+                @if ($bab)
+                    @if ($bab->file_path || $bab->video_url)
+                        <div class="media-container mb-4">
+                            <button id="toggleMedia" class="mb-2 text-sm bg-blue-500 text-white rounded p-2 transition duration-300 ease-in-out hover:bg-blue-600 shadow-md">
+                                Tampilkan Media
+                            </button>
+                            <div id="mediaContent" class="hidden">
+                                {{-- Display PDF if available --}}
+                                @if ($bab->file_path)
+                                    <div class="pdf-viewer mb-4">
+                                        <iframe src="{{ asset('storage/' . $bab->file_path) }}" width="100%" height="600px" style="border: none;"></iframe>
+                                    </div>
+                                @endif
+
+                                {{-- Display Video if available --}}
+                                @if ($bab->video_url)
+                                    @php
+                                        $videoId = explode('?v=', $bab->video_url)[1];
+                                    @endphp
+                                    <div class="video-responsive mb-4">
+                                        <iframe width="560" height="315" src="https://www.youtube.com/embed/{{ $videoId }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
-                    </div>
+                    @else
+                        <p class="text-red-500">Media tidak tersedia untuk bab ini.</p>
+                    @endif
                 @endif
 
                 {{-- Rendered Markdown Content --}}

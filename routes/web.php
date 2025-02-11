@@ -233,7 +233,7 @@ Route::prefix('guru')->middleware(['auth', 'isGuru'])->group(function () {
     });
 
     Route::controller(RiwayatController::class)->group(function () {
-        Route::get('/riwayat', 'index');
+        Route::get('/riwayat', 'index')->name('admin.riwayat.index');
         Route::get('/riwayat/{user}/lihat', 'cekProgress');
         Route::get('/riwayat/{user}/lihat/{prepost}', 'cekDetail');
     });

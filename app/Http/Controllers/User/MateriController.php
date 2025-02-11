@@ -1307,6 +1307,12 @@ class MateriController extends Controller
         $correctAnswersCount = 0; // Hitung jumlah soal yang benar
         $totalNilai = 0; // Inisialisasi total nilai
         
+        // Inisialisasi array untuk menyimpan hasil setiap soal
+        $detailScores = [];
+        
+        // Nilai per soal dihitung secara dinamis
+        $nilaiPerSoal = 100 / $qcount; // Nilai per soal berdasarkan jumlah soal
+        
         if ($qcount > 0) {
             for ($i = 0; $i < $qcount; $i++) {
                 $typedAnswer = strtolower($request->input('ans_' . ($i + 1)));
@@ -1319,28 +1325,40 @@ class MateriController extends Controller
                     'created_at' => Carbon::now(),
                 ]);
         
-                // Periksa jawaban
+                // Periksa jawaban dan tentukan nilai
                 $isCorrect = $this->checkPreTestAnswer($request->q[$i], $typedAnswer);
-                $nilai = $isCorrect ? 10 : 0; // Nilai per soal
+                $nilai = $isCorrect ? $nilaiPerSoal : 0; // Nilai per soal sesuai distribusi dinamis
         
                 if ($isCorrect) {
                     $correctAnswersCount++; // Tambah jumlah soal yang benar
                 }
-    
+        
                 // Update nilai jawaban
                 PreTestAnswer::where('pre_test_attempt_id', $pre_test_attempt_id)
                     ->where('soal_id', $request->q[$i])
                     ->update(['nilai' => $nilai]);
+                
+                // Dapatkan jawaban yang benar dari database untuk feedback
+                $correctAnswer = Answer::where('soal_id', $request->q[$i])->first()->answer;
+    
+                // Tambahkan detail nilai soal
+                $detailScores[] = [
+                    'soal_id' => $request->q[$i],
+                    'typed_answer' => $typedAnswer,
+                    'nilai' => $nilai,
+                    'correct_answer' => $correctAnswer,
+                    'is_correct' => $isCorrect ? 'Benar' : 'Salah',
+                ];
             }
         }
     
         // Hitung total nilai dalam format desimal
-        $totalNilai = ($correctAnswersCount / $qcount) * 100;
-    
+        $totalNilai = $nilaiPerSoal * $correctAnswersCount;
+        
         // Update total_nilai di PreTestAttempt
         $preTestAttempt->update(['total_nilai' => number_format($totalNilai, 2, '.', '')]);
         
-        // Tentukan status
+        // Tentukan status berdasarkan jumlah jawaban yang benar
         $status = ($correctAnswersCount === $qcount) ? 2 : 1;
         $preTestAttempt->update(['status' => $status]);
         
@@ -1349,6 +1367,7 @@ class MateriController extends Controller
             ? 'Selamat, Anda berhasil menyelesaikan Pre Test dengan sempurna!' 
             : 'Selamat, Anda berhasil menyelesaikan Pre Test!';
         
+        // Menampilkan detail skor untuk analisis lebih lanjut
         return Redirect::back()->with('message', $message);
     }
 
