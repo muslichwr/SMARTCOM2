@@ -16,7 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('pre_post_id');
             $table->unsignedBigInteger('user_id');
             $table->integer('status')->default(0);
-
+            $table->decimal('nilai', 5, 2)->default(0.00);
+            $table->decimal('total_nilai', 5, 2)->default(0.00);
             $table->foreign('pre_post_id')->references('id')->on('pre_posts')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
