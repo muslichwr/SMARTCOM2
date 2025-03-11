@@ -9,13 +9,23 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::create('ketuas', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('kelompok_id')->constrained('kelompoks');
-            $table->foreignId('user_id')->constrained('users');
-            $table->timestamps();
+        Schema::table('ketuas', function (Blueprint $table) {
+            // Hapus foreign key lama (jika ada)
+            $table->dropForeign(['kelompok_id']);
+            $table->dropForeign(['user_id']);
+    
+            // Tambahkan foreign key baru dengan onDelete('cascade')
+            $table->foreign('kelompok_id')
+                  ->references('id')
+                  ->on('kelompoks')
+                  ->onDelete('cascade');
+    
+            $table->foreign('user_id')
+                  ->references('id')
+                  ->on('users')
+                  ->onDelete('cascade');
         });
     }
 

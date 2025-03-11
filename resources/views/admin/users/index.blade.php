@@ -53,15 +53,7 @@
                                         <td class="border px-4 py-2">
                                             <a href="{{ url('admin/users/' . $user->id . '/edit') }}"
                                                 class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-sm rounded my-1 inline-block">Edit</a>
-                                            <form action="{{ url('admin/users/' . $user->id) }}" method="POST" style="display: inline-block;">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-sm rounded my-1 inline-block"
-                                                    onclick="return confirm('Apakah Anda yakin ingin menghapus pengguna ini?')">
-                                                    Delete
-                                                </button>
-                                            </form>
+                                            <a href="{{ url('admin/users/'. $user->id) }}" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-sm rounded my-1 inline-block" data-confirm-delete="true">Delete</a>
                                         </td>
                                     </tr>
                                 @empty

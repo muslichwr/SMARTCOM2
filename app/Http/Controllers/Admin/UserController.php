@@ -20,7 +20,7 @@ class UserController extends Controller
         $text = "Anda yakin ingin menghapus Akun?";
         confirmDelete($title, $text);
 
-        return view('admin.users.index', compact('users'));
+        return view('admin.users.index', ['users' => $users]);
     }
 
     // Menampilkan form upload CSV
@@ -160,8 +160,7 @@ class UserController extends Controller
         return redirect('/admin/users')->with('success', 'User berhasil diupdate.');
     }
 
-    public function destroy(User $user)
-    {
+    public function destroy(User $user) {
         $user->delete();
         alert()->success('Hore!', 'Akun Berhasil Dihapus.');
         return back();

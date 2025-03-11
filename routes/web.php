@@ -112,9 +112,9 @@ Route::prefix('admin')->middleware(['auth', 'isAdmin'])->group(function () {
         Route::get('/users', 'index');
         Route::get('/users/create', 'create');
         Route::post('/users', 'store');
-        Route::get('/users/{users}/edit','edit');
-        Route::put('/users/{users}', 'update');
-        Route::delete('/users/{users}', 'destroy');
+        Route::get('/users/{user}/edit','edit');
+        Route::put('/users/{user}', 'update');
+        Route::delete('/users/{user}', 'destroy');
 
         Route::get('/users/bulk-create', 'showBulkCreateForm')->name('users.bulk-create');
         Route::post('/users/bulk-create', 'bulkCreate');
