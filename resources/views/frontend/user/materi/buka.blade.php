@@ -212,7 +212,7 @@
                                 </span>
                                 {{-- @endif --}}
                             @else
-                                <span>Sebelum memulai latihan anda harus menyelesaikan semua materi terlebih dahulu</span>
+                                {{-- <span>Sebelum memulai latihan anda harus menyelesaikan semua materi terlebih dahulu</span> --}}
                             @endif
                         </div>
                         <div class="mt-4">
