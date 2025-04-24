@@ -71,12 +71,15 @@ Route::prefix('user')->middleware(['auth'])->group(function () {
 });
 
 Route::prefix('admin')->middleware(['auth', 'isAdmin'])->group(function () {
-    Route::get('dashboard', [DashboardController::class,'index']);
+    Route::get('dashboard', [DashboardController::class,'index'])->name('admin.dashboard');
 
     // Sintaks Route
     Route::controller(PJBLSintaksController::class)->group(function () {
         // Halaman utama (daftar materi)
         Route::get('pjbl/sintaks', 'index')->name('admin.pjbl.sintaks.index');
+
+        // Toggle PJBL Sintaks aktif/nonaktif
+        Route::post('pjbl/sintaks/{id}/toggle', 'togglePJBLSintaks')->name('admin.pjbl.sintaks.toggle');
 
         // Daftar kelompok di materi tertentu
         Route::get('pjbl/sintaks/{materi}/kelompok', 'listKelompok')->name('admin.pjbl.sintaks.kelompok');

@@ -17,7 +17,12 @@ class Materi extends Model
     protected $fillable = [
         'judul',
         'slug',
-        'deskripsi'
+        'deskripsi',
+        'pjbl_sintaks_active'
+    ];
+
+    protected $casts = [
+        'pjbl_sintaks_active' => 'boolean',
     ];
 
     public function babs()

@@ -117,7 +117,7 @@
             const mediaContent = document.getElementById('mediaContent');
             const selesaiButton = document.getElementById('selesaiButton');
             const timerText = document.getElementById('timerText');
-            let countdownTime = 8 * 60; // 8 minutes in seconds
+            let countdownTime = 0 * 10; // 8 minutes in seconds
             const timerInterval = setInterval(function() {
                 const minutes = Math.floor(countdownTime / 60);
                 const seconds = countdownTime % 60;

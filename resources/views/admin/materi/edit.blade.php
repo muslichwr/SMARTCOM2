@@ -52,6 +52,14 @@
                                         <small class="text-red-500">{{ $message }}</small>
                                     @enderror
                                 </div>
+                                <div class="form-group mb-3">
+                                    <label>Status PJBL Sintaks</label>
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" id="pjbl_sintaks_active" name="pjbl_sintaks_active" {{ $materi->pjbl_sintaks_active ? 'checked' : '' }}>
+                                        <label class="custom-control-label" for="pjbl_sintaks_active">Aktifkan PJBL Sintaks untuk materi ini</label>
+                                    </div>
+                                    <small class="form-text text-muted">Jika diaktifkan, siswa dapat mengakses fitur PJBL Sintaks pada materi ini.</small>
+                                </div>
                             </div>
 
                             <div class="py-2 flex justify-end">

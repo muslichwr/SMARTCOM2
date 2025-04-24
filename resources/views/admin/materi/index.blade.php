@@ -26,6 +26,7 @@
                                     <th class="px-4 py-2">No</th>
                                     <th class="px-4 py-2">Judul Materi</th>
                                     <th class="px-4 py-2">Bab Materi</th>
+                                    <th class="px-4 py-2">Status PJBL</th>
                                     <th class="px-4 py-2">Aksi</th>
                                 </tr>
                             </thead>
@@ -35,6 +36,11 @@
                                         <td class="border px-4 py-2">{{ $materis->firstItem() + $index }}</td>
                                         <td class="border px-4 py-2">{{ $materi->judul }}</td>
                                         <td class="border px-4 py-2">{{ $materi->babs_count }}</td>
+                                        <td class="border px-4 py-2">
+                                            <span class="px-2 py-1 rounded text-white {{ $materi->pjbl_sintaks_active ? 'bg-green-500' : 'bg-red-500' }}">
+                                                {{ $materi->pjbl_sintaks_active ? 'Aktif' : 'Nonaktif' }}
+                                            </span>
+                                        </td>
                                         <td class="border px-4 py-2">
                                             <a href="{{ url('admin/materi/' . $materi->id . '/edit') }}"
                                                 class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-sm rounded my-1 inline-block">Edit</a>

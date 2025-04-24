@@ -75,6 +75,12 @@ class MateriController extends Controller
         // Ambil materi berdasarkan slug
         $materi = Materi::where('slug', $slug)->firstOrFail();
         
+        // Cek apakah PJBL Sintaks diaktifkan untuk materi ini
+        if (!$materi->pjbl_sintaks_active) {
+            return redirect()->route('user.materi.index')
+                ->with('error', 'PJBL Sintaks tidak aktif untuk materi ini');
+        }
+        
         // Ambil kelompok berdasarkan user yang sedang login
         $kelompok = Kelompok::whereHas('anggotas', function($query) {
             $query->where('user_id', auth()->id());
@@ -102,6 +108,12 @@ class MateriController extends Controller
     {
         // Ambil materi berdasarkan slug
         $materi = Materi::where('slug', $slug)->firstOrFail();
+        
+        // Cek apakah PJBL Sintaks diaktifkan untuk materi ini
+        if (!$materi->pjbl_sintaks_active) {
+            return redirect()->route('user.materi.index')
+                ->with('error', 'PJBL Sintaks tidak aktif untuk materi ini');
+        }
         
         // Ambil kelompok berdasarkan user yang sedang login
         $kelompok = Kelompok::whereHas('anggotas', function($query) {
@@ -170,6 +182,12 @@ class MateriController extends Controller
     {
         // Ambil materi berdasarkan slug
         $materi = Materi::where('slug', $slug)->firstOrFail();
+        
+        // Cek apakah PJBL Sintaks diaktifkan untuk materi ini
+        if (!$materi->pjbl_sintaks_active) {
+            return redirect()->route('user.materi.index')
+                ->with('error', 'PJBL Sintaks tidak aktif untuk materi ini');
+        }
         
         // Ambil kelompok berdasarkan user yang sedang login
         $kelompok = Kelompok::whereHas('anggotas', function($query) {
@@ -295,6 +313,12 @@ class MateriController extends Controller
         // Ambil materi berdasarkan slug
         $materi = Materi::where('slug', $slug)->firstOrFail();
         
+        // Cek apakah PJBL Sintaks diaktifkan untuk materi ini
+        if (!$materi->pjbl_sintaks_active) {
+            return redirect()->route('user.materi.index')
+                ->with('error', 'PJBL Sintaks tidak aktif untuk materi ini');
+        }
+        
         // Ambil kelompok berdasarkan user yang sedang login
         $kelompok = Kelompok::whereHas('anggotas', function($query) {
             $query->where('user_id', auth()->id());
@@ -358,6 +382,12 @@ class MateriController extends Controller
     {
         // Ambil materi berdasarkan slug
         $materi = Materi::where('slug', $slug)->firstOrFail();
+        
+        // Cek apakah PJBL Sintaks diaktifkan untuk materi ini
+        if (!$materi->pjbl_sintaks_active) {
+            return redirect()->route('user.materi.index')
+                ->with('error', 'PJBL Sintaks tidak aktif untuk materi ini');
+        }
         
         // Ambil kelompok berdasarkan user yang sedang login
         $kelompok = Kelompok::whereHas('anggotas', function($query) {
@@ -431,6 +461,12 @@ class MateriController extends Controller
     {
         // Ambil materi berdasarkan slug
         $materi = Materi::where('slug', $slug)->firstOrFail();
+        
+        // Cek apakah PJBL Sintaks diaktifkan untuk materi ini
+        if (!$materi->pjbl_sintaks_active) {
+            return redirect()->route('user.materi.index')
+                ->with('error', 'PJBL Sintaks tidak aktif untuk materi ini');
+        }
         
         // Ambil kelompok berdasarkan user yang sedang login
         $kelompok = Kelompok::whereHas('anggotas', function($query) {
@@ -512,6 +548,12 @@ class MateriController extends Controller
         // Ambil materi berdasarkan slug
         $materi = Materi::where('slug', $slug)->firstOrFail();
         
+        // Cek apakah PJBL Sintaks diaktifkan untuk materi ini
+        if (!$materi->pjbl_sintaks_active) {
+            return redirect()->route('user.materi.index')
+                ->with('error', 'PJBL Sintaks tidak aktif untuk materi ini');
+        }
+        
         // Ambil kelompok berdasarkan user yang sedang login
         $kelompok = Kelompok::whereHas('anggotas', function($query) {
             $query->where('user_id', auth()->id());
@@ -588,6 +630,12 @@ class MateriController extends Controller
     {
         // Ambil materi berdasarkan slug
         $materi = Materi::where('slug', $slug)->firstOrFail();
+    
+        // Cek apakah PJBL Sintaks diaktifkan untuk materi ini
+        if (!$materi->pjbl_sintaks_active) {
+            return redirect()->route('user.materi.index')
+                ->with('error', 'PJBL Sintaks tidak aktif untuk materi ini');
+        }
     
         // Ambil kelompok berdasarkan user yang sedang login
         $kelompok = Kelompok::whereHas('anggotas', function($query) {

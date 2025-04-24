@@ -35,6 +35,7 @@ class MateriController extends Controller
         $materi->judul = $validatedData['judul'];
         $materi->slug = Str::slug($validatedData['judul']);
         $materi->deskripsi = $validatedData['deskripsi'];
+        $materi->pjbl_sintaks_active = $request->has('pjbl_sintaks_active') ? true : false;
         $materi->save();
 
         return redirect('admin/materi')->with('message', 'Materi berhasil ditambahkan.');
@@ -54,6 +55,7 @@ class MateriController extends Controller
         $materi->judul = $validatedData['judul'];
         $materi->slug = Str::slug($validatedData['judul']);
         $materi->deskripsi = $validatedData['deskripsi'];
+        $materi->pjbl_sintaks_active = $request->has('pjbl_sintaks_active') ? true : false;
         $materi->update();
 
         return redirect('admin/materi')->with('message', 'Materi berhasil diupdate.');
