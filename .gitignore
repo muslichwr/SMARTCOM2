@@ -17,3 +17,6 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+/.cursor
+/.cursor/rules
+/.cursor/rules/*.mdc
