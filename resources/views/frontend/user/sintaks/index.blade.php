@@ -22,7 +22,7 @@
                 <br>
                 <div class="p-6">
                     <div class="space-y-6">
-                        <!-- Tahap 1 -->
+                        <!-- Tahap 1: Orientasi Masalah -->
                         <div class="p-4 bg-white shadow-md rounded-lg flex justify-between items-center">
                             <span class="font-semibold text-gray-800 text-lg">Tahap 1: Orientasi Masalah</span>
                             <div class="flex items-center">
@@ -30,112 +30,162 @@
                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
                                     Mulai
                                 </a>
-                                @if ($sintaks->where('status_tahap', 'tahap_1')->first() && $sintaks->where('status_tahap', 'tahap_1')->first()->status_validasi == 'valid')
+                                @if ($sintaks->sintaksTahapSatu && $sintaks->sintaksTahapSatu->status_validasi == 'valid')
                                     <span class="ml-3 text-green-500 font-semibold">Sudah Divalidasi</span>
+                                @elseif ($sintaks->sintaksTahapSatu && $sintaks->sintaksTahapSatu->status_validasi == 'pending')
+                                    <span class="ml-3 text-yellow-500 font-semibold">Menunggu Validasi</span>
+                                @elseif ($sintaks->sintaksTahapSatu && $sintaks->sintaksTahapSatu->status_validasi == 'invalid')
+                                    <span class="ml-3 text-red-500 font-semibold">Ditolak</span>
                                 @else
-                                    <span class="ml-3 text-red-500 font-semibold">Belum Divalidasi</span>
+                                    <span class="ml-3 text-gray-500 font-semibold">Belum Dikerjakan</span>
                                 @endif
                             </div>
                         </div>
 
-                        <!-- Tahap 2 -->
+                        <!-- Tahap 2: Rancangan Proyek -->
                         <div class="p-4 bg-white shadow-md rounded-lg flex justify-between items-center">
-                            <span class="font-semibold text-gray-800 text-lg">Tahap 2: Indikator Masalah</span>
+                            <span class="font-semibold text-gray-800 text-lg">Tahap 2: Rancangan Proyek</span>
                             <div class="flex items-center">
                                 <a href="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap2') }}"
                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
                                     Mulai
                                 </a>
-                                @if ($sintaks->where('status_tahap', 'tahap_2')->first() && $sintaks->where('status_tahap', 'tahap_2')->first()->status_validasi == 'valid')
+                                @if ($sintaks->sintaksTahapDua && $sintaks->sintaksTahapDua->status_validasi == 'valid')
                                     <span class="ml-3 text-green-500 font-semibold">Sudah Divalidasi</span>
+                                @elseif ($sintaks->sintaksTahapDua && $sintaks->sintaksTahapDua->status_validasi == 'pending')
+                                    <span class="ml-3 text-yellow-500 font-semibold">Menunggu Validasi</span>
+                                @elseif ($sintaks->sintaksTahapDua && $sintaks->sintaksTahapDua->status_validasi == 'invalid')
+                                    <span class="ml-3 text-red-500 font-semibold">Ditolak</span>
                                 @else
-                                    <span class="ml-3 text-red-500 font-semibold">Belum Divalidasi</span>
+                                    <span class="ml-3 text-gray-500 font-semibold">Belum Dikerjakan</span>
                                 @endif
                             </div>
                         </div>
 
-                        <!-- Tahap 3 -->
+                        <!-- Tahap 3: Jadwal Proyek -->
                         <div class="p-4 bg-white shadow-md rounded-lg flex justify-between items-center">
-                            <span class="font-semibold text-gray-800 text-lg">Tahap 3: Deskripsi Proyek</span>
+                            <span class="font-semibold text-gray-800 text-lg">Tahap 3: Jadwal Proyek</span>
                             <div class="flex items-center">
                                 <a href="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap3') }}"
                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
                                     Mulai
                                 </a>
-                                @if ($sintaks->where('status_tahap', 'tahap_3')->first() && $sintaks->where('status_tahap', 'tahap_3')->first()->status_validasi == 'valid')
+                                @if ($sintaks->sintaksTahapTiga && $sintaks->sintaksTahapTiga->status_validasi == 'valid')
                                     <span class="ml-3 text-green-500 font-semibold">Sudah Divalidasi</span>
+                                @elseif ($sintaks->sintaksTahapTiga && $sintaks->sintaksTahapTiga->status_validasi == 'pending')
+                                    <span class="ml-3 text-yellow-500 font-semibold">Menunggu Validasi</span>
+                                @elseif ($sintaks->sintaksTahapTiga && $sintaks->sintaksTahapTiga->status_validasi == 'invalid')
+                                    <span class="ml-3 text-red-500 font-semibold">Ditolak</span>
                                 @else
-                                    <span class="ml-3 text-red-500 font-semibold">Belum Divalidasi</span>
+                                    <span class="ml-3 text-gray-500 font-semibold">Belum Dikerjakan</span>
                                 @endif
                             </div>
                         </div>
 
+                        <!-- Tahap 4: Pelaksanaan Proyek -->
                         <div class="p-4 bg-white shadow-md rounded-lg flex justify-between items-center">
-                            <span class="font-semibold text-gray-800 text-lg">Tahap 4: Menyusun Jadwal</span>
+                            <span class="font-semibold text-gray-800 text-lg">Tahap 4: Pelaksanaan Proyek</span>
                             <div class="flex items-center">
                                 <a href="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap4') }}"
                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
                                     Mulai
                                 </a>
-                                @if ($sintaks->where('status_tahap', 'tahap_4')->first() && $sintaks->where('status_tahap', 'tahap_4')->first()->status_validasi == 'valid')
+                                @if ($sintaks->sintaksTahapEmpat && $sintaks->sintaksTahapEmpat->status_validasi == 'valid')
                                     <span class="ml-3 text-green-500 font-semibold">Sudah Divalidasi</span>
+                                @elseif ($sintaks->sintaksTahapEmpat && $sintaks->sintaksTahapEmpat->status_validasi == 'pending')
+                                    <span class="ml-3 text-yellow-500 font-semibold">Menunggu Validasi</span>
+                                @elseif ($sintaks->sintaksTahapEmpat && $sintaks->sintaksTahapEmpat->status_validasi == 'invalid')
+                                    <span class="ml-3 text-red-500 font-semibold">Ditolak</span>
                                 @else
-                                    <span class="ml-3 text-red-500 font-semibold">Belum Divalidasi</span>
+                                    <span class="ml-3 text-gray-500 font-semibold">Belum Dikerjakan</span>
                                 @endif
                             </div>
                         </div>
 
+                        <!-- Tahap 5: Hasil Karya Proyek -->
                         <div class="p-4 bg-white shadow-md rounded-lg flex justify-between items-center">
-                            <span class="font-semibold text-gray-800 text-lg">Tahap 5: Pelaksanaan Proyek</span>
+                            <span class="font-semibold text-gray-800 text-lg">Tahap 5: Hasil Karya Proyek</span>
                             <div class="flex items-center">
                                 <a href="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap5') }}"
                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
                                     Mulai
                                 </a>
-                                @if ($sintaks->where('status_tahap', 'tahap_5')->first() && $sintaks->where('status_tahap', 'tahap_5')->first()->status_validasi == 'valid')
+                                @if ($sintaks->sintaksTahapLima && $sintaks->sintaksTahapLima->status_validasi == 'valid')
                                     <span class="ml-3 text-green-500 font-semibold">Sudah Divalidasi</span>
+                                @elseif ($sintaks->sintaksTahapLima && $sintaks->sintaksTahapLima->status_validasi == 'pending')
+                                    <span class="ml-3 text-yellow-500 font-semibold">Menunggu Validasi</span>
+                                @elseif ($sintaks->sintaksTahapLima && $sintaks->sintaksTahapLima->status_validasi == 'invalid')
+                                    <span class="ml-3 text-red-500 font-semibold">Ditolak</span>
                                 @else
-                                    <span class="ml-3 text-red-500 font-semibold">Belum Divalidasi</span>
+                                    <span class="ml-3 text-gray-500 font-semibold">Belum Dikerjakan</span>
                                 @endif
                             </div>
                         </div>
 
+                        <!-- Tahap 6: Presentasi Proyek -->
                         <div class="p-4 bg-white shadow-md rounded-lg flex justify-between items-center">
-                            <span class="font-semibold text-gray-800 text-lg">Tahap 6: Pengumpulan Proyek</span>
+                            <span class="font-semibold text-gray-800 text-lg">Tahap 6: Presentasi Proyek</span>
                             <div class="flex items-center">
                                 <a href="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap6') }}"
                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
                                     Mulai
                                 </a>
-                                @if ($sintaks->where('status_tahap', 'tahap_6')->first() && $sintaks->where('status_tahap', 'tahap_6')->first()->status_validasi == 'valid')
+                                @if ($sintaks->sintaksTahapEnam && $sintaks->sintaksTahapEnam->status_validasi == 'valid')
                                     <span class="ml-3 text-green-500 font-semibold">Sudah Divalidasi</span>
+                                @elseif ($sintaks->sintaksTahapEnam && $sintaks->sintaksTahapEnam->status_validasi == 'pending')
+                                    <span class="ml-3 text-yellow-500 font-semibold">Menunggu Validasi</span>
+                                @elseif ($sintaks->sintaksTahapEnam && $sintaks->sintaksTahapEnam->status_validasi == 'invalid')
+                                    <span class="ml-3 text-red-500 font-semibold">Ditolak</span>
                                 @else
-                                    <span class="ml-3 text-red-500 font-semibold">Belum Divalidasi</span>
+                                    <span class="ml-3 text-gray-500 font-semibold">Belum Dikerjakan</span>
                                 @endif
                             </div>
                         </div>
 
+                        <!-- Tahap 7: Penilaian Kelompok dan Individu -->
                         <div class="p-4 bg-white shadow-md rounded-lg flex justify-between items-center">
-                            <span class="font-semibold text-gray-800 text-lg">Tahap 7: Penilaian dan Evaluasi Proyek</span>
+                            <span class="font-semibold text-gray-800 text-lg">Tahap 7: Penilaian Kelompok dan Individu</span>
                             <div class="flex items-center">
                                 <a href="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap7') }}"
                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
                                     Mulai
                                 </a>
-                                @if ($sintaks->where('status_tahap', 'tahap_7')->first() && $sintaks->where('status_tahap', 'tahap_7')->first()->status_validasi == 'valid')
+                                @if ($sintaks->sintaksTahapTuju && $sintaks->sintaksTahapTuju->status_validasi == 'valid')
                                     <span class="ml-3 text-green-500 font-semibold">Sudah Divalidasi</span>
+                                @elseif ($sintaks->sintaksTahapTuju && $sintaks->sintaksTahapTuju->status_validasi == 'pending')
+                                    <span class="ml-3 text-yellow-500 font-semibold">Menunggu Validasi</span>
+                                @elseif ($sintaks->sintaksTahapTuju && $sintaks->sintaksTahapTuju->status_validasi == 'invalid')
+                                    <span class="ml-3 text-red-500 font-semibold">Ditolak</span>
                                 @else
-                                    <span class="ml-3 text-red-500 font-semibold">Belum Divalidasi</span>
+                                    <span class="ml-3 text-gray-500 font-semibold">Belum Dikerjakan</span>
+                                @endif
+                            </div>
+                        </div>
+                        
+                        <!-- Tahap 8: Evaluasi dan Refleksi -->
+                        <div class="p-4 bg-white shadow-md rounded-lg flex justify-between items-center">
+                            <span class="font-semibold text-gray-800 text-lg">Tahap 8: Evaluasi dan Refleksi</span>
+                            <div class="flex items-center">
+                                <a href="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap8') }}"
+                                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
+                                    Mulai
+                                </a>
+                                @if ($sintaks->sintaksTahapDelapan && $sintaks->sintaksTahapDelapan->status_validasi == 'valid')
+                                    <span class="ml-3 text-green-500 font-semibold">Sudah Divalidasi</span>
+                                @elseif ($sintaks->sintaksTahapDelapan && $sintaks->sintaksTahapDelapan->status_validasi == 'pending')
+                                    <span class="ml-3 text-yellow-500 font-semibold">Menunggu Validasi</span>
+                                @elseif ($sintaks->sintaksTahapDelapan && $sintaks->sintaksTahapDelapan->status_validasi == 'invalid')
+                                    <span class="ml-3 text-red-500 font-semibold">Ditolak</span>
+                                @else
+                                    <span class="ml-3 text-gray-500 font-semibold">Belum Dikerjakan</span>
                                 @endif
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-    <br>
-    <br>
-
+            <br>
+            <br>
         </div>
     </div>
-    
 @endsection

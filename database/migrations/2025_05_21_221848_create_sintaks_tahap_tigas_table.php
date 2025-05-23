@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('sintaks_tahap_tigas', function (Blueprint $table) {
             $table->id();
             $table->foreignId('sintaks_id')->constrained('sintaks_barus')->onDelete('cascade');
-            $table->string('file_jadwal')->nullable(); // File Excel yang diupload
-            $table->date('tanggal_mulai')->nullable();
-            $table->date('tanggal_selesai')->nullable();
+            $table->string('file_jadwal')->nullable(); // File PDF/Word yang diupload siswa, admin/guru bisa mengedit.
+            $table->date('tanggal_mulai')->nullable(); // Diisi oleh siswa, admin/guru bisa mengedit.
+            $table->date('tanggal_selesai')->nullable(); // Diisi oleh siswa, admin/guru bisa mengedit.
             $table->enum('status', ['belum_mulai', 'proses', 'selesai'])->default('belum_mulai');
             $table->enum('status_validasi', ['valid', 'invalid', 'pending'])->default('pending');
             $table->longText('feedback_guru')->nullable(); // Opsional: untuk komentar saat invalid

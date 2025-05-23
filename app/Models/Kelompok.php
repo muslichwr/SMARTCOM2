@@ -33,6 +33,7 @@ class Kelompok extends Model
 
     public function sintaks()
     {
-        return $this->hasMany(Sintaks::class);
+        return $this->hasMany(SintaksBaru::class);
     }
+
 }

@@ -30,27 +30,51 @@
                     @endif
 
                     <!-- Cek apakah penilaian sudah dilakukan -->
-                    @if ($sintaks && $sintaks->status_validasi == 'valid')
+                    @if ($tahapTuju && $tahapTuju->status_validasi == 'valid')
                         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
                             <strong>Status Penilaian:</strong> <span class="font-semibold">Selesai</span>
-                            <p class="mt-2"><strong>Feedback Guru:</strong> {{ $sintaks->feedback_guru ?? 'Belum ada feedback' }}</p>
+                            <p class="mt-2"><strong>Feedback Guru:</strong> {{ $tahapTuju->feedback_guru ?? 'Belum ada feedback' }}</p>
+                        </div>
+
+                        <!-- Tampilkan nilai individu -->
+                        <div class="mb-6">
+                            <h4 class="text-lg font-semibold mb-3">Nilai Individu</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-white border border-gray-300 rounded-lg">
+                                    <thead>
+                                        <tr class="bg-gray-100">
+                                            <th class="py-2 px-3 border-b text-left text-sm font-medium text-gray-700">Anggota</th>
+                                            <th class="py-2 px-3 border-b text-left text-sm font-medium text-gray-700">Nilai</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php $totalNilai = 0; $jumlahNilai = 0; @endphp
+                                        @foreach($tahapTuju->nilaiIndividu as $nilai)
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="py-2 px-3 border-b">{{ $nilai->user->name }}</td>
+                                                <td class="py-2 px-3 border-b">
+                                                    <span class="font-semibold">{{ $nilai->total_nilai_individu }}</span>
+                                                    @php 
+                                                        $totalNilai += $nilai->total_nilai_individu; 
+                                                        $jumlahNilai++; 
+                                                    @endphp
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
 
                         <!-- Tampilkan total nilai -->
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-                            <h4 class="text-lg font-semibold text-blue-800 mb-2">Total Nilai</h4>
+                            <h4 class="text-lg font-semibold text-blue-800 mb-2">Total Nilai Kelompok</h4>
                             <p class="text-4xl font-bold text-blue-800">
-                                {{ 
-                                    ($sintaks->score_class_object ?? 0) +
-                                    ($sintaks->score_encapsulation ?? 0) +
-                                    ($sintaks->score_inheritance ?? 0) +
-                                    ($sintaks->score_logic_function ?? 0) +
-                                    ($sintaks->score_project_report ?? 0)
-                                }}
+                                {{ $jumlahNilai > 0 ? round($totalNilai / $jumlahNilai, 1) : 0 }}
                             </p>
                             <p class="text-sm text-gray-600 mt-2">Dari total maksimal 100</p>
                         </div>
-                    @elseif ($sintaks && $sintaks->status_validasi == 'pending')
+                    @elseif ($tahapTuju && $tahapTuju->status_validasi == 'pending')
                         <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-lg mb-4">
                             <strong>Status Penilaian:</strong> <span class="font-semibold">Menunggu Penilaian</span>
                             <p class="mt-2">Silakan menunggu guru untuk memberikan penilaian.</p>
@@ -63,8 +87,8 @@
                     @endif
 
                     <!-- Tombol Minta Penilaian -->
-                    @if (!$sintaks || $sintaks->status_validasi != 'valid')
-                        <form action="{{ url('user/materi/' . $materi->slug . '/sintaks/tahap7') }}" method="POST">
+                    @if (!$tahapTuju || $tahapTuju->status_validasi != 'valid')
+                        <form action="{{ route('user.materi.tahap7', ['slug' => $materi->slug]) }}" method="POST">
                             @csrf
                             <div class="mt-6 flex justify-end">
                                 <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md transition duration-300">

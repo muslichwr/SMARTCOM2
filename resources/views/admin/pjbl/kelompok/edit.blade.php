@@ -73,18 +73,18 @@
                             @if ($siswa->isEmpty())
                                 <p class="text-red-500 text-sm">Tidak ada siswa yang tersedia untuk dipilih.</p>
                             @else
-                                <select name="anggota[]" id="anggota" multiple
+                                <select name="anggotas[]" id="anggota" multiple
                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     @foreach ($siswa as $user)
                                         <option value="{{ $user->id }}" 
-                                            @if (in_array($user->id, old('anggota', [])) || in_array($user->id, $kelompokAnggota)) selected @endif>
+                                            @if (in_array($user->id, old('anggotas', $kelompokAnggota))) selected @endif>
                                             {{ $user->name }}
                                         </option>
                                     @endforeach
                                 </select>
                             @endif
                             <small class="text-gray-500">Ctrl+klik untuk memilih banyak anggota.</small>
-                            @error('anggota')
+                            @error('anggotas')
                                 <span class="text-red-500 text-sm">{{ $message }}</span>
                             @enderror
                         </div>

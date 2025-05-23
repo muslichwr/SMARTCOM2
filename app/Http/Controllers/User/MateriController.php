@@ -88,7 +88,7 @@ class MateriController extends Controller
         
         // Jika kelompok tidak ditemukan, redirect ke halaman lain
         if (!$kelompok) {
-            return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
+            return redirect()->route('user.materi.index')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
         
         // Ambil atau buat sintaks untuk kelompok dan materi ini
@@ -102,19 +102,22 @@ class MateriController extends Controller
             ]
         );
         
-        // Load semua tahapan
+        // Load semua tahapan dengan relasinya
         $sintaks->load([
             'sintaksTahapSatu', 
             'sintaksTahapDua', 
             'sintaksTahapTiga', 
-            'sintaksTahapEmpat.tasks', 
+            'sintaksTahapEmpat.sintaksTugas', // menggunakan sintaksTugas sebagai relasi
             'sintaksTahapLima', 
             'sintaksTahapEnam', 
             'sintaksTahapTuju.nilaiIndividu', 
             'sintaksTahapDelapan.refleksiIndividu'
         ]);
         
-        return view('frontend.user.sintaks.index', compact('materi', 'sintaks', 'kelompok'));
+        // Dapatkan informasi anggota kelompok
+        $anggotaKelompok = $kelompok->anggotas()->with('user')->get();
+        
+        return view('frontend.user.sintaks.index', compact('materi', 'sintaks', 'kelompok', 'anggotaKelompok'));
     }
 
     public function tahap7($slug)
@@ -140,10 +143,10 @@ class MateriController extends Controller
     
         // Ambil sintaks
         $sintaks = \App\Models\SintaksBaru::where('materi_id', $materi->id)
-                                       ->where('kelompok_id', $kelompok->id)
-                                       ->with(['sintaksTahapEnam'])
-                                       ->firstOrFail();
-        
+            ->where('kelompok_id', $kelompok->id)
+            ->with(['sintaksTahapEnam'])
+            ->firstOrFail();
+    
         // Pastikan tahap 6 sudah valid sebelum lanjut ke tahap 7
         if (!$sintaks->sintaksTahapEnam || $sintaks->sintaksTahapEnam->status_validasi !== 'valid') {
             return redirect()->route('user.materi.sintaks', ['slug' => $slug])
@@ -165,7 +168,7 @@ class MateriController extends Controller
         }
         
         // Load nilai individu jika ada
-        $tahapTuju->load('nilaiIndividu');
+        $tahapTuju->load('nilaiIndividu.user');
     
         // Kirim data ke view
         return view('frontend.user.sintaks.tahap7', compact('materi', 'kelompok', 'sintaks', 'tahapTuju'));
@@ -188,9 +191,9 @@ class MateriController extends Controller
     
         // Ambil sintaks dan data tahap tuju
         $sintaks = \App\Models\SintaksBaru::where('materi_id', $materi->id)
-                                       ->where('kelompok_id', $kelompok->id)
-                                       ->with('sintaksTahapTuju')
-                                       ->firstOrFail();
+            ->where('kelompok_id', $kelompok->id)
+            ->with('sintaksTahapTuju')
+            ->firstOrFail();
         
         // Pastikan tahap tuju sudah ada
         if (!$sintaks->sintaksTahapTuju) {
@@ -229,7 +232,7 @@ class MateriController extends Controller
 
         // Ambil sintaks
         $sintaks = \App\Models\SintaksBaru::where('materi_id', $materi->id)
-                                       ->where('kelompok_id', $kelompok->id)
+            ->where('kelompok_id', $kelompok->id)
                                        ->with(['sintaksTahapLima'])
                                        ->firstOrFail();
         
@@ -264,8 +267,7 @@ class MateriController extends Controller
         // Validasi data
         $request->validate([
             'link_presentasi' => 'required|url',
-            'tanggal_presentasi' => 'required|date',
-            'file_presentasi' => 'nullable|file|mimes:pdf,ppt,pptx|max:20480',
+            'jadwal_presentasi' => 'required|date_format:Y-m-d\TH:i',
             'catatan_presentasi' => 'nullable|string',
         ]);
         
@@ -293,21 +295,10 @@ class MateriController extends Controller
         // Update data tahap enam
         $tahapEnam = $sintaks->sintaksTahapEnam;
         $tahapEnam->link_presentasi = $request->link_presentasi;
-        $tahapEnam->tanggal_presentasi = $request->tanggal_presentasi;
+        $tahapEnam->jadwal_presentasi = $request->jadwal_presentasi;
         $tahapEnam->catatan_presentasi = $request->catatan_presentasi;
         $tahapEnam->status_validasi = 'pending';
-        
-        // Upload file jika ada
-        if ($request->hasFile('file_presentasi')) {
-            // Hapus file lama jika ada
-            if ($tahapEnam->file_presentasi && Storage::disk('public')->exists($tahapEnam->file_presentasi)) {
-                Storage::disk('public')->delete($tahapEnam->file_presentasi);
-            }
-            
-            // Simpan file baru
-            $filePath = $request->file('file_presentasi')->store('sintaks/tahap6', 'public');
-            $tahapEnam->file_presentasi = $filePath;
-        }
+        $tahapEnam->status = 'proses';
         
         $tahapEnam->save();
     
@@ -337,16 +328,16 @@ class MateriController extends Controller
 
         // Ambil sintaks
         $sintaks = \App\Models\SintaksBaru::where('materi_id', $materi->id)
-                                       ->where('kelompok_id', $kelompok->id)
-                                       ->with(['sintaksTahapEmpat'])
-                                       ->firstOrFail();
-        
+            ->where('kelompok_id', $kelompok->id)
+            ->with(['sintaksTahapEmpat'])
+            ->firstOrFail();
+
         // Pastikan tahap 4 sudah valid sebelum lanjut ke tahap 5
         if (!$sintaks->sintaksTahapEmpat || $sintaks->sintaksTahapEmpat->status_validasi !== 'valid') {
             return redirect()->route('user.materi.sintaks', ['slug' => $slug])
                             ->with('error', 'Anda harus menyelesaikan dan mendapatkan validasi untuk Tahap 4 terlebih dahulu.');
         }
-        
+
         // Ambil data tahap lima jika sudah ada
         $tahapLima = $sintaks->sintaksTahapLima;
         
@@ -355,27 +346,7 @@ class MateriController extends Controller
             $tahapLima = new \App\Models\SintaksTahapLima();
             $tahapLima->sintaks_id = $sintaks->id;
             $tahapLima->status_validasi = 'pending';
-            
-            // Ambil tugas yang sudah completed dari tahap 4
-            $completedTasks = \App\Models\SintaksTahapEmpatTugas::where('sintaks_tahap_empat_id', $sintaks->sintaksTahapEmpat->id)
-                                                             ->where('status', 'completed')
-                                                             ->with('user')
-                                                             ->get();
-            
-            // Inisialisasi progress karya
-            $progressKarya = [];
-            foreach ($completedTasks as $task) {
-                $progressKarya[] = [
-                    'tugas' => $task->deskripsi_tugas,
-                    'user_id' => $task->user_id,
-                    'nama_anggota' => $task->user->name,
-                    'status' => 'in_progress',
-                    'file_tugas' => null
-                ];
-            }
-            
-            // Simpan progress karya dalam format JSON
-            $tahapLima->progress_karya = json_encode($progressKarya);
+            $tahapLima->status = 'belum_mulai';
             $tahapLima->save();
             
             return redirect()->route('user.materi.tahap5', $materi->slug)
@@ -392,8 +363,8 @@ class MateriController extends Controller
         
         // Validasi data
         $request->validate([
-            'deskripsi_karya' => 'required|string',
-            'file_karya' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,zip|max:20480',
+            'deskripsi_hasil' => 'required|string',
+            'file_hasil_karya' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,zip|max:20480',
         ]);
         
         // Ambil kelompok berdasarkan user yang sedang login
@@ -404,13 +375,13 @@ class MateriController extends Controller
         if (!$kelompok) {
             return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
-    
+
         // Ambil sintaks utama
         $sintaks = \App\Models\SintaksBaru::where('materi_id', $materi->id)
-                                       ->where('kelompok_id', $kelompok->id)
-                                       ->with('sintaksTahapLima')
-                                       ->firstOrFail();
-        
+            ->where('kelompok_id', $kelompok->id)
+            ->with('sintaksTahapLima')
+            ->firstOrFail();
+
         // Pastikan tahap lima sudah ada
         if (!$sintaks->sintaksTahapLima) {
             return redirect()->route('user.materi.tahap5', ['slug' => $slug])
@@ -419,99 +390,28 @@ class MateriController extends Controller
         
         // Update data tahap lima
         $tahapLima = $sintaks->sintaksTahapLima;
-        $tahapLima->deskripsi_karya = $request->deskripsi_karya;
+        $tahapLima->deskripsi_hasil = $request->deskripsi_hasil;
+        $tahapLima->status = 'proses';
         
         // Upload file jika ada
-        if ($request->hasFile('file_karya')) {
+        if ($request->hasFile('file_hasil_karya')) {
             // Hapus file lama jika ada
-            if ($tahapLima->file_karya && Storage::disk('public')->exists($tahapLima->file_karya)) {
-                Storage::disk('public')->delete($tahapLima->file_karya);
+            if ($tahapLima->file_hasil_karya && Storage::disk('public')->exists($tahapLima->file_hasil_karya)) {
+                Storage::disk('public')->delete($tahapLima->file_hasil_karya);
             }
-            
+
             // Simpan file baru
-            $filePath = $request->file('file_karya')->store('sintaks/tahap5', 'public');
-            $tahapLima->file_karya = $filePath;
+            $filePath = $request->file('file_hasil_karya')->store('sintaks/tahap5', 'public');
+            $tahapLima->file_hasil_karya = $filePath;
+            $tahapLima->status = 'selesai';
         }
         
         // Update status validasi
         $tahapLima->status_validasi = 'pending';
         $tahapLima->save();
-    
+
         return redirect()->route('user.materi.sintaks', ['slug' => $slug])
                         ->with('success', 'Tahap 5 berhasil disimpan');
-    }
-    
-    public function updateProgressKarya(Request $request, $slug)
-    {
-        // Ambil materi berdasarkan slug
-        $materi = Materi::where('slug', $slug)->firstOrFail();
-        
-        // Validasi data
-        $request->validate([
-            'index' => 'required|integer|min:0',
-            'status' => 'required|in:in_progress,completed',
-            'file_tugas' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:10240',
-        ]);
-        
-        // Ambil kelompok berdasarkan user yang sedang login
-        $kelompok = Kelompok::whereHas('anggotas', function($query) {
-            $query->where('user_id', auth()->id());
-        })->first();
-        
-        if (!$kelompok) {
-            return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
-        }
-    
-        // Ambil sintaks utama
-        $sintaks = \App\Models\SintaksBaru::where('materi_id', $materi->id)
-                                       ->where('kelompok_id', $kelompok->id)
-                                       ->with('sintaksTahapLima')
-                                       ->firstOrFail();
-        
-        // Pastikan tahap lima sudah ada
-        if (!$sintaks->sintaksTahapLima) {
-            return redirect()->route('user.materi.tahap5', ['slug' => $slug])
-                            ->with('error', 'Tahap 5 belum dibuat.');
-        }
-        
-        // Ambil dan update progress karya
-        $tahapLima = $sintaks->sintaksTahapLima;
-        $progressKarya = json_decode($tahapLima->progress_karya, true);
-        
-        // Pastikan index valid
-        if (!isset($progressKarya[$request->index])) {
-            return redirect()->route('user.materi.tahap5', ['slug' => $slug])
-                            ->with('error', 'Index progress karya tidak valid.');
-        }
-        
-        // Pastikan hanya user yang bersangkutan yang bisa update
-        if ($progressKarya[$request->index]['user_id'] != auth()->id()) {
-            return redirect()->route('user.materi.tahap5', ['slug' => $slug])
-                            ->with('error', 'Anda tidak berhak mengubah progress ini.');
-        }
-        
-        // Update status
-        $progressKarya[$request->index]['status'] = $request->status;
-        
-        // Upload file jika ada
-        if ($request->hasFile('file_tugas')) {
-            // Hapus file lama jika ada
-            $oldFilePath = $progressKarya[$request->index]['file_tugas'] ?? null;
-            if ($oldFilePath && Storage::disk('public')->exists($oldFilePath)) {
-                Storage::disk('public')->delete($oldFilePath);
-            }
-            
-            // Simpan file baru
-            $filePath = $request->file('file_tugas')->store('sintaks/tahap5/progress', 'public');
-            $progressKarya[$request->index]['file_tugas'] = $filePath;
-        }
-        
-        // Simpan kembali progress karya
-        $tahapLima->progress_karya = json_encode($progressKarya);
-        $tahapLima->save();
-        
-        return redirect()->route('user.materi.tahap5', ['slug' => $slug])
-                        ->with('success', 'Progress karya berhasil diperbarui');
     }
 
     public function tahap4($slug)
@@ -536,10 +436,10 @@ class MateriController extends Controller
 
         // Ambil sintaks
         $sintaks = \App\Models\SintaksBaru::where('materi_id', $materi->id)
-                                       ->where('kelompok_id', $kelompok->id)
+        ->where('kelompok_id', $kelompok->id)
                                        ->with(['sintaksTahapTiga'])
                                        ->firstOrFail();
-        
+
         // Pastikan tahap 3 sudah valid sebelum lanjut ke tahap 4
         if (!$sintaks->sintaksTahapTiga || $sintaks->sintaksTahapTiga->status_validasi !== 'valid') {
             return redirect()->route('user.materi.sintaks', ['slug' => $slug])
@@ -564,10 +464,11 @@ class MateriController extends Controller
                 foreach ($tugasAnggota as $index => $tugas) {
                     if (isset($anggotaKelompok[$index])) {
                         $task = new \App\Models\SintaksTahapEmpatTugas();
-                        $task->sintaks_tahap_empat_id = $tahapEmpat->id;
+                        $task->sintaks_pelaksanaan_id = $tahapEmpat->id;
                         $task->user_id = $anggotaKelompok[$index]->user_id;
-                        $task->deskripsi_tugas = $tugas;
-                        $task->status = 'pending';
+                        $task->judul_task = "Tugas ".($index+1);
+                        $task->deskripsi_task = $tugas;
+                        $task->status = 'belum_mulai';
                         $task->deadline = date('Y-m-d', strtotime($sintaks->sintaksTahapTiga->jadwal_selesai));
                         $task->save();
                     }
@@ -577,7 +478,7 @@ class MateriController extends Controller
             return redirect()->route('user.materi.tahap4', $materi->slug)
                             ->with('success', 'Silakan mulai mengerjakan tahap 4.');
         }
-        
+
         // Load tugas-tugas dengan relasi user
         $tahapEmpat->load('tasks.user');
 
@@ -592,7 +493,7 @@ class MateriController extends Controller
         // Validasi data
         $request->validate([
             'task_id' => 'required|exists:sintaks_tahap_empat_tugas,id',
-            'status' => 'required|in:pending,in_progress,completed',
+            'status' => 'required|in:belum_mulai,proses,selesai',
             'catatan' => 'nullable|string',
             'file_tugas' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:10240',
         ]);
@@ -620,7 +521,7 @@ class MateriController extends Controller
         
         // Ambil tugas berdasarkan id
         $task = \App\Models\SintaksTahapEmpatTugas::where('id', $request->task_id)
-                                                ->where('sintaks_tahap_empat_id', $sintaks->sintaksTahapEmpat->id)
+                                                ->where('sintaks_pelaksanaan_id', $sintaks->sintaksTahapEmpat->id)
                                                 ->firstOrFail();
         
         // Pastikan hanya pemilik tugas yang bisa mengubah
@@ -648,13 +549,13 @@ class MateriController extends Controller
         $task->save();
         
         // Periksa apakah semua tugas telah selesai
-        $allTasksCompleted = \App\Models\SintaksTahapEmpatTugas::where('sintaks_tahap_empat_id', $sintaks->sintaksTahapEmpat->id)
-                                                            ->where('status', '!=', 'completed')
+        $allTasksCompleted = \App\Models\SintaksTahapEmpatTugas::where('sintaks_pelaksanaan_id', $sintaks->sintaksTahapEmpat->id)
+                                                            ->where('status', '!=', 'selesai')
                                                             ->count() === 0;
         
         // Update status tahap empat jika semua tugas selesai
         if ($allTasksCompleted) {
-            $sintaks->sintaksTahapEmpat->status = 'completed';
+            $sintaks->sintaksTahapEmpat->status = 'selesai';
             $sintaks->sintaksTahapEmpat->save();
         }
     
@@ -669,9 +570,11 @@ class MateriController extends Controller
         
         // Validasi data
         $request->validate([
-            'deskripsi_tugas' => 'required|string',
+            'deskripsi_task' => 'required|string',
+            'judul_task' => 'required|string',
             'user_id' => 'required|exists:users,id',
             'deadline' => 'required|date',
+            'file_tugas' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:10240',
         ]);
         
         // Ambil kelompok berdasarkan user yang sedang login
@@ -682,13 +585,13 @@ class MateriController extends Controller
         if (!$kelompok) {
             return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
-    
+
         // Ambil sintaks utama
         $sintaks = \App\Models\SintaksBaru::where('materi_id', $materi->id)
-                                       ->where('kelompok_id', $kelompok->id)
-                                       ->with('sintaksTahapEmpat')
-                                       ->firstOrFail();
-        
+                                   ->where('kelompok_id', $kelompok->id)
+                                   ->with('sintaksTahapEmpat')
+                                   ->firstOrFail();
+
         // Pastikan tahap empat sudah ada
         if (!$sintaks->sintaksTahapEmpat) {
             return redirect()->route('user.materi.tahap4', ['slug' => $slug])
@@ -707,13 +610,21 @@ class MateriController extends Controller
         
         // Buat tugas baru
         $task = new \App\Models\SintaksTahapEmpatTugas();
-        $task->sintaks_tahap_empat_id = $sintaks->sintaksTahapEmpat->id;
+        $task->sintaks_pelaksanaan_id = $sintaks->sintaksTahapEmpat->id;
         $task->user_id = $request->user_id;
-        $task->deskripsi_tugas = $request->deskripsi_tugas;
-        $task->status = 'pending';
+        $task->judul_task = $request->judul_task;
+        $task->deskripsi_task = $request->deskripsi_task;
+        $task->status = 'belum_mulai';
         $task->deadline = $request->deadline;
+        
+        // Upload file jika ada
+        if ($request->hasFile('file_tugas')) {
+            $filePath = $request->file('file_tugas')->store('sintaks/tahap4', 'public');
+            $task->file_tugas = $filePath;
+        }
+        
         $task->save();
-    
+        
         return redirect()->route('user.materi.tahap4', ['slug' => $slug])
                         ->with('success', 'Tugas berhasil ditambahkan');
     }
@@ -739,19 +650,16 @@ class MateriController extends Controller
             return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
 
-        // Ambil anggota kelompok
-        $anggotaKelompok = $kelompok->anggotas;
-
         // Ambil sintaks
         $sintaks = \App\Models\SintaksBaru::where('materi_id', $materi->id)
-                                       ->where('kelompok_id', $kelompok->id)
-                                       ->with(['sintaksTahapSatu', 'sintaksTahapDua'])
-                                       ->firstOrFail();
-        
+                    ->where('kelompok_id', $kelompok->id)
+                   ->with(['sintaksTahapSatu', 'sintaksTahapDua'])
+                   ->firstOrFail();
+
         // Pastikan tahap 2 sudah valid sebelum lanjut ke tahap 3
         if (!$sintaks->sintaksTahapDua || $sintaks->sintaksTahapDua->status_validasi !== 'valid') {
             return redirect()->route('user.materi.sintaks', ['slug' => $slug])
-                            ->with('error', 'Anda harus menyelesaikan dan mendapatkan validasi untuk Tahap 2 terlebih dahulu.');
+                        ->with('error', 'Anda harus menyelesaikan dan mendapatkan validasi untuk Tahap 2 terlebih dahulu.');
         }
         
         // Ambil data tahap tiga jika sudah ada
@@ -768,7 +676,7 @@ class MateriController extends Controller
                             ->with('success', 'Silakan mulai mengerjakan tahap 3.');
         }
 
-        return view('frontend.user.sintaks.tahap3', compact('materi', 'kelompok', 'sintaks', 'tahapTiga', 'anggotaKelompok'));
+        return view('frontend.user.sintaks.tahap3', compact('materi', 'kelompok', 'sintaks', 'tahapTiga'));
     }
 
     public function simpanTahap3(Request $request, $slug)
@@ -778,11 +686,10 @@ class MateriController extends Controller
         
         // Validasi data
         $request->validate([
-            'jadwal_mulai' => 'required|date',
-            'jadwal_selesai' => 'required|date|after_or_equal:jadwal_mulai',
-            'tugas_anggota' => 'required|array',
-            'tugas_anggota.*' => 'required|string',
-            'file_jadwal' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx|max:10240',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'file_jadwal' => 'required_without:has_file|file|mimes:pdf,doc,docx,xls,xlsx|max:10240',
+            'has_file' => 'nullable|string',
         ]);
         
         // Ambil kelompok berdasarkan user yang sedang login
@@ -793,19 +700,19 @@ class MateriController extends Controller
         if (!$kelompok) {
             return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
-    
+
         // Ambil sintaks utama
         $sintaks = \App\Models\SintaksBaru::where('materi_id', $materi->id)
-                                       ->where('kelompok_id', $kelompok->id)
-                                       ->with('sintaksTahapDua')
-                                       ->firstOrFail();
-        
+                               ->where('kelompok_id', $kelompok->id)
+                               ->with('sintaksTahapDua')
+                               ->firstOrFail();
+    
         // Cek apakah tahap 2 sudah divalidasi
         if (!$sintaks->sintaksTahapDua || $sintaks->sintaksTahapDua->status_validasi !== 'valid') {
             return redirect()->route('user.materi.sintaks', ['slug' => $slug])
                             ->with('error', 'Anda harus menyelesaikan dan mendapatkan validasi untuk Tahap 2 terlebih dahulu.');
         }
-        
+    
         // Ambil atau buat tahap tiga
         $tahapTiga = $sintaks->sintaksTahapTiga;
         if (!$tahapTiga) {
@@ -814,10 +721,10 @@ class MateriController extends Controller
         }
         
         // Update data tahap tiga
-        $tahapTiga->jadwal_mulai = $request->jadwal_mulai;
-        $tahapTiga->jadwal_selesai = $request->jadwal_selesai;
-        $tahapTiga->tugas_anggota = json_encode($request->tugas_anggota);
+        $tahapTiga->tanggal_mulai = date('Y-m-d', strtotime($request->tanggal_mulai));
+        $tahapTiga->tanggal_selesai = date('Y-m-d', strtotime($request->tanggal_selesai));
         $tahapTiga->status_validasi = 'pending';
+        $tahapTiga->status = 'proses'; // Update status menjadi proses
         
         // Upload file jika ada
         if ($request->hasFile('file_jadwal')) {
@@ -832,9 +739,46 @@ class MateriController extends Controller
         }
         
         $tahapTiga->save();
-    
+
         return redirect()->route('user.materi.sintaks', ['slug' => $slug])
                         ->with('success', 'Tahap 3 berhasil disimpan');
+    }
+    
+    /**
+     * Auto validasi tahap 3 saat waktu habis
+     */
+    public function autoValidasiTahap3(Request $request, $slug)
+    {
+        // Validasi request
+        $request->validate([
+            'sintaks_id' => 'required',
+            'tahap_id' => 'required'
+        ]);
+        
+        // Ambil data tahap tiga
+        $tahapTiga = \App\Models\SintaksTahapTiga::findOrFail($request->tahap_id);
+        
+        // Cek apakah tanggal selesai sudah terlewati
+        $now = now();
+        $tanggalSelesai = \Carbon\Carbon::parse($tahapTiga->tanggal_selesai)->endOfDay();
+        
+        if ($now->gt($tanggalSelesai) && $tahapTiga->status_validasi === 'pending') {
+            // Update status validasi menjadi valid
+            $tahapTiga->status_validasi = 'valid';
+            $tahapTiga->status = 'selesai';
+            $tahapTiga->feedback_guru = 'Divalidasi otomatis karena waktu telah berakhir.';
+            $tahapTiga->save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Tahap 3 telah divalidasi otomatis karena waktu telah berakhir.'
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Tahap 3 belum bisa divalidasi otomatis.'
+        ]);
     }
 
     public function tahap2($slug)
@@ -860,7 +804,7 @@ class MateriController extends Controller
         
         // Cek apakah tahap 1 sudah divalidasi
         $sintaks = \App\Models\SintaksBaru::where('materi_id', $materi->id)
-                                       ->where('kelompok_id', $kelompok->id)
+                          ->where('kelompok_id', $kelompok->id)
                                        ->with('sintaksTahapSatu')
                                        ->firstOrFail();
         
@@ -881,9 +825,9 @@ class MateriController extends Controller
             $tahapDua->save();
             
             return redirect()->route('user.materi.tahap2', $materi->slug)
-                            ->with('success', 'Silakan mulai mengerjakan tahap 2.');
+                             ->with('success', 'Silakan mulai mengerjakan tahap 2.');
         }
-        
+    
         return view('frontend.user.sintaks.tahap2', compact('materi', 'kelompok', 'sintaks', 'tahapDua'));
     }
     
@@ -965,7 +909,7 @@ class MateriController extends Controller
     
         // Jika kelompok tidak ditemukan, redirect ke halaman lain dengan pesan error
         if (!$kelompok) {
-            return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
+            return redirect()->route('user.materi.index')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
     
         // Ambil atau buat sintaks utama
@@ -1003,9 +947,9 @@ class MateriController extends Controller
         
         // Validasi data
         $request->validate([
-            'orientasi_masalah' => 'required|string',
             'rumusan_masalah' => 'required|string',
-            'file_analisis' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'file_indikator_masalah' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'file_hasil_analisis' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
         ]);
         
         // Ambil kelompok berdasarkan user yang sedang login
@@ -1014,13 +958,13 @@ class MateriController extends Controller
         })->first();
         
         if (!$kelompok) {
-            return redirect()->route('user.materi.sintaks')->with('error', 'Anda tidak tergabung dalam kelompok.');
+            return redirect()->route('user.materi.index')->with('error', 'Anda tidak tergabung dalam kelompok.');
         }
-    
+
         // Ambil sintaks utama
         $sintaks = \App\Models\SintaksBaru::where('materi_id', $materi->id)
-                                       ->where('kelompok_id', $kelompok->id)
-                                       ->firstOrFail();
+                                   ->where('kelompok_id', $kelompok->id)
+                                   ->firstOrFail();
         
         // Ambil atau buat tahap satu
         $tahapSatu = $sintaks->sintaksTahapSatu;
@@ -1030,24 +974,36 @@ class MateriController extends Controller
         }
         
         // Update data tahap satu
-        $tahapSatu->orientasi_masalah = $request->orientasi_masalah;
+        // Catatan: orientasi_masalah hanya diisi oleh guru, jadi tidak diupdate oleh siswa
         $tahapSatu->rumusan_masalah = $request->rumusan_masalah;
         $tahapSatu->status_validasi = 'pending';
         
-        // Upload file jika ada
-        if ($request->hasFile('file_analisis')) {
+        // Upload file indikator masalah jika ada
+        if ($request->hasFile('file_indikator_masalah')) {
             // Hapus file lama jika ada
-            if ($tahapSatu->file_analisis && Storage::disk('public')->exists($tahapSatu->file_analisis)) {
-                Storage::disk('public')->delete($tahapSatu->file_analisis);
+            if ($tahapSatu->file_indikator_masalah && Storage::disk('public')->exists($tahapSatu->file_indikator_masalah)) {
+                Storage::disk('public')->delete($tahapSatu->file_indikator_masalah);
             }
             
             // Simpan file baru
-            $filePath = $request->file('file_analisis')->store('sintaks/tahap1', 'public');
-            $tahapSatu->file_analisis = $filePath;
+            $filePath = $request->file('file_indikator_masalah')->store('sintaks/tahap1', 'public');
+            $tahapSatu->file_indikator_masalah = $filePath;
+        }
+        
+        // Upload file hasil analisis jika ada
+        if ($request->hasFile('file_hasil_analisis')) {
+            // Hapus file lama jika ada
+            if ($tahapSatu->file_hasil_analisis && Storage::disk('public')->exists($tahapSatu->file_hasil_analisis)) {
+                Storage::disk('public')->delete($tahapSatu->file_hasil_analisis);
+            }
+            
+            // Simpan file baru
+            $filePath = $request->file('file_hasil_analisis')->store('sintaks/tahap1', 'public');
+            $tahapSatu->file_hasil_analisis = $filePath;
         }
         
         $tahapSatu->save();
-    
+
         return redirect()->route('user.materi.sintaks', ['slug' => $slug])
                         ->with('success', 'Tahap 1 berhasil disimpan');
     }
@@ -1726,6 +1682,7 @@ class MateriController extends Controller
             $tahapDelapan = new \App\Models\SintaksTahapDelapan();
             $tahapDelapan->sintaks_id = $sintaks->id;
             $tahapDelapan->status_validasi = 'pending';
+            $tahapDelapan->status = 'belum_mulai';
             $tahapDelapan->save();
             
             // Buat entri refleksi individu untuk setiap anggota kelompok
@@ -1757,8 +1714,8 @@ class MateriController extends Controller
         
         // Validasi data
         $request->validate([
-            'refleksi_kelompok' => 'required|string',
-            'pembelajaran' => 'required|string',
+            'evaluasi_kelompok' => 'required|string',
+            'refleksi_pembelajaran' => 'required|string',
         ]);
         
         // Ambil kelompok berdasarkan user yang sedang login
@@ -1784,9 +1741,10 @@ class MateriController extends Controller
         
         // Update data tahap delapan
         $tahapDelapan = $sintaks->sintaksTahapDelapan;
-        $tahapDelapan->refleksi_kelompok = $request->refleksi_kelompok;
-        $tahapDelapan->pembelajaran = $request->pembelajaran;
+        $tahapDelapan->evaluasi_kelompok = $request->evaluasi_kelompok;
+        $tahapDelapan->refleksi_pembelajaran = $request->refleksi_pembelajaran;
         $tahapDelapan->status_validasi = 'pending';
+        $tahapDelapan->status = 'proses';
         $tahapDelapan->save();
     
         return redirect()->route('user.materi.sintaks', ['slug' => $slug])
@@ -1800,8 +1758,9 @@ class MateriController extends Controller
         
         // Validasi data
         $request->validate([
-            'kendala' => 'required|string',
-            'pembelajaran' => 'required|string',
+            'kendala_dihadapi' => 'required|string',
+            'pembelajaran_didapat' => 'required|string',
+            'refleksi_pribadi' => 'required|string',
             'refleksi_id' => 'required|exists:sintaks_tahap_delapan_refleksis,id',
         ]);
         
@@ -1815,8 +1774,9 @@ class MateriController extends Controller
         }
         
         // Update data refleksi
-        $refleksi->kendala = $request->kendala;
-        $refleksi->pembelajaran = $request->pembelajaran;
+        $refleksi->kendala_dihadapi = $request->kendala_dihadapi;
+        $refleksi->pembelajaran_didapat = $request->pembelajaran_didapat;
+        $refleksi->refleksi_pribadi = $request->refleksi_pribadi;
         $refleksi->save();
         
         return redirect()->route('user.materi.tahap8', ['slug' => $slug])

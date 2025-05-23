@@ -19,6 +19,8 @@ return new class extends Migration
             $table->text('deskripsi_task')->nullable();
             $table->date('deadline')->nullable();
             $table->enum('status', ['belum_mulai', 'proses', 'selesai'])->default('belum_mulai');
+            $table->text('catatan')->nullable(); // Catatan progress dari anggota
+            $table->string('file_tugas')->nullable(); // File yang diupload untuk tugas
             $table->timestamps();
         });
     }

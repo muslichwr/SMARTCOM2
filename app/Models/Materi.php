@@ -43,6 +43,6 @@ class Materi extends Model
     // Tambahkan relasi sintaks
     public function sintaks()
     {
-        return $this->hasMany(Sintaks::class, 'materi_id', 'id');
+        return $this->hasMany(SintaksBaru::class, 'materi_id', 'id');
     }
 }

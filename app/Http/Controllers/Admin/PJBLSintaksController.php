@@ -216,6 +216,8 @@ class PJBLSintaksController extends Controller
         $request->validate([
             'status_validasi' => 'required|in:valid,invalid,pending',
             'feedback_guru' => 'nullable|string',
+            'deskripsi_hasil' => 'nullable|string',
+            'file_hasil_karya' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,zip|max:20480',
         ]);
 
         $sintaks = SintaksBaru::where('materi_id', $materi->id)
@@ -225,13 +227,38 @@ class PJBLSintaksController extends Controller
         $tahapLima = $sintaks->sintaksTahapLima;
         
         if (!$tahapLima) {
+            if ($request->has('deskripsi_hasil') || $request->hasFile('file_hasil_karya')) {
+                $tahapLima = new \App\Models\SintaksTahapLima();
+                $tahapLima->sintaks_id = $sintaks->id;
+                $tahapLima->status_validasi = 'pending';
+                $tahapLima->status = 'proses';
+                
+                if ($request->has('deskripsi_hasil')) {
+                    $tahapLima->deskripsi_hasil = $request->deskripsi_hasil;
+                }
+                
+                $tahapLima->save();
+                
+                $this->processFileUploads($request, $tahapLima);
+                
+                return redirect()->back()->with('success', 'Data tahap 5 berhasil disimpan.');
+            }
             return redirect()->back()->with('error', 'Tahap 5 belum diisi oleh kelompok.');
         }
         
-        $tahapLima->update([
-            'status_validasi' => $request->status_validasi,
-            'feedback_guru' => $request->feedback_guru,
-        ]);
+        $dataUpdated = false;
+        
+        if ($request->has('deskripsi_hasil')) {
+            $tahapLima->deskripsi_hasil = $request->deskripsi_hasil;
+            $dataUpdated = true;
+        }
+        
+        $filesUpdated = $this->processFileUploads($request, $tahapLima);
+        
+        // Update status validasi dan feedback
+        $tahapLima->status_validasi = $request->status_validasi;
+        $tahapLima->feedback_guru = $request->feedback_guru;
+        $tahapLima->save();
 
         return redirect()->back()->with('success', 'Status validasi Tahap 5 berhasil diperbarui.');
     }
@@ -242,6 +269,9 @@ class PJBLSintaksController extends Controller
         $request->validate([
             'status_validasi' => 'required|in:valid,invalid,pending',
             'feedback_guru' => 'nullable|string',
+            'link_presentasi' => 'nullable|url',
+            'jadwal_presentasi' => 'nullable|date_format:Y-m-d\TH:i',
+            'catatan_presentasi' => 'nullable|string',
         ]);
 
         $sintaks = SintaksBaru::where('materi_id', $materi->id)
@@ -251,13 +281,56 @@ class PJBLSintaksController extends Controller
         $tahapEnam = $sintaks->sintaksTahapEnam;
         
         if (!$tahapEnam) {
+            if ($request->has('link_presentasi') || $request->has('jadwal_presentasi') || 
+                $request->has('catatan_presentasi')) {
+                $tahapEnam = new \App\Models\SintaksTahapEnam();
+                $tahapEnam->sintaks_id = $sintaks->id;
+                $tahapEnam->status_validasi = 'pending';
+                $tahapEnam->status = 'proses';
+                
+                if ($request->has('link_presentasi')) {
+                    $tahapEnam->link_presentasi = $request->link_presentasi;
+                }
+                
+                if ($request->has('jadwal_presentasi')) {
+                    $tahapEnam->jadwal_presentasi = $request->jadwal_presentasi;
+                }
+                
+                if ($request->has('catatan_presentasi')) {
+                    $tahapEnam->catatan_presentasi = $request->catatan_presentasi;
+                }
+                
+                $tahapEnam->save();
+                
+                
+                return redirect()->back()->with('success', 'Data tahap 6 berhasil disimpan.');
+            }
+            
             return redirect()->back()->with('error', 'Tahap 6 belum diisi oleh kelompok.');
         }
         
-        $tahapEnam->update([
-            'status_validasi' => $request->status_validasi,
-            'feedback_guru' => $request->feedback_guru,
-        ]);
+        $dataUpdated = false;
+        
+        if ($request->has('link_presentasi')) {
+            $tahapEnam->link_presentasi = $request->link_presentasi;
+            $dataUpdated = true;
+        }
+        
+        if ($request->has('jadwal_presentasi')) {
+            $tahapEnam->jadwal_presentasi = $request->jadwal_presentasi;
+            $dataUpdated = true;
+        }
+        
+        if ($request->has('catatan_presentasi')) {
+            $tahapEnam->catatan_presentasi = $request->catatan_presentasi;
+            $dataUpdated = true;
+        }
+        
+        
+        if ($dataUpdated) {
+            $tahapEnam->save();
+            return redirect()->back()->with('success', 'Data tahap 6 berhasil diperbarui.');
+        }
 
         return redirect()->back()->with('success', 'Status validasi Tahap 6 berhasil diperbarui.');
     }
@@ -275,10 +348,10 @@ class PJBLSintaksController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'nilai_kriteria' => 'required|array',
-            'nilai_kriteria.*.nama' => 'required|string',
-            'nilai_kriteria.*.nilai' => 'required|integer|min:0|max:100',
-            'nilai_kriteria.*.bobot' => 'required|integer|min:0|max:100',
-            'total_nilai_individu' => 'required|integer|min:0|max:100',
+            'nilai_kriteria.kriteria.*.nama' => 'required|string',
+            'nilai_kriteria.kriteria.*.nilai' => 'required|integer|min:0|max:100',
+            'nilai_kriteria.kriteria.*.bobot' => 'required|integer|min:1|max:5',
+            'total_nilai_individu' => 'required|numeric|min:0|max:100',
             'feedback_guru' => 'nullable|string',
         ]);
 
@@ -292,12 +365,14 @@ class PJBLSintaksController extends Controller
             $tahapTuju = SintaksTahapTuju::create([
                 'sintaks_id' => $sintaks->id,
                 'status_validasi' => 'valid',
-                'feedback_guru' => $request->feedback_guru
+                'feedback_guru' => $request->feedback_guru,
+                'status' => 'selesai'
             ]);
         } else {
             $tahapTuju->update([
                 'status_validasi' => 'valid',
-                'feedback_guru' => $request->feedback_guru
+                'feedback_guru' => $request->feedback_guru,
+                'status' => 'selesai'
             ]);
         }
 
@@ -308,7 +383,7 @@ class PJBLSintaksController extends Controller
                 'user_id' => $request->user_id
             ],
             [
-                'nilai_kriteria' => json_encode($request->nilai_kriteria),
+                'nilai_kriteria' => $request->nilai_kriteria,
                 'total_nilai_individu' => $request->total_nilai_individu
             ]
         );
@@ -341,11 +416,16 @@ class PJBLSintaksController extends Controller
             return redirect()->back()->with('error', 'Tahap 8 belum diisi oleh kelompok.');
         }
         
-        $tahapDelapan->update([
-            'status_validasi' => $request->status_validasi,
-            'feedback_guru' => $request->feedback_guru,
-        ]);
-
+        $tahapDelapan->status_validasi = $request->status_validasi;
+        $tahapDelapan->feedback_guru = $request->feedback_guru;
+        $tahapDelapan->save();
+        
+        // Jika validasi menjadi valid, update status tahap menjadi selesai
+        if ($request->status_validasi === 'valid') {
+            $tahapDelapan->status = 'selesai';
+            $tahapDelapan->save();
+        }
+        
         return redirect()->back()->with('success', 'Status validasi Tahap 8 berhasil diperbarui.');
     }
 
@@ -353,28 +433,354 @@ class PJBLSintaksController extends Controller
     public function validasiTahap(Request $request, Materi $materi, Kelompok $kelompok)
     {
         $request->validate([
-            'tahap' => 'required|in:tahap_1,tahap_2,tahap_3,tahap_4,tahap_5,tahap_6,tahap_8',
+            'tahap' => 'required|in:tahap_satu,tahap_dua,tahap_tiga,tahap_empat,tahap_lima,tahap_enam,tahap_tuju,tahap_delapan',
             'status_validasi' => 'required|in:valid,invalid,pending',
             'feedback_guru' => 'nullable|string',
+            'orientasi_masalah' => 'nullable|string',
+            'rumusan_masalah' => 'nullable|string',
+            'file_indikator_masalah' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'file_hasil_analisis' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'deskripsi_rancangan' => 'nullable|string',
+            'file_rancangan' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx|max:10240',
+            'deskripsi_hasil' => 'nullable|string',
+            'file_hasil_karya' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,zip|max:20480',
+            'link_presentasi' => 'nullable|url',
+            'jadwal_presentasi' => 'nullable|date_format:Y-m-d\TH:i',
+            'catatan_presentasi' => 'nullable|string',
         ]);
 
+        $sintaks = SintaksBaru::where('materi_id', $materi->id)
+                            ->where('kelompok_id', $kelompok->id)
+                            ->firstOrFail();
+        
         switch ($request->tahap) {
-            case 'tahap_1':
-                return $this->validasiTahapSatu($request, $materi, $kelompok);
-            case 'tahap_2':
-                return $this->validasiTahapDua($request, $materi, $kelompok);
-            case 'tahap_3':
-                return $this->validasiTahapTiga($request, $materi, $kelompok);
-            case 'tahap_4':
-                return $this->validasiTahapEmpat($request, $materi, $kelompok);
-            case 'tahap_5':
-                return $this->validasiTahapLima($request, $materi, $kelompok);
-            case 'tahap_6':
-                return $this->validasiTahapEnam($request, $materi, $kelompok);
-            case 'tahap_8':
-                return $this->validasiTahapDelapan($request, $materi, $kelompok);
+            case 'tahap_satu':
+                $tahap = $sintaks->sintaksTahapSatu;
+                if (!$tahap) {
+                    if ($request->has('orientasi_masalah') || $request->has('rumusan_masalah') || 
+                        $request->hasFile('file_indikator_masalah') || $request->hasFile('file_hasil_analisis')) {
+                        $tahap = new \App\Models\SintaksTahapSatu();
+                        $tahap->sintaks_id = $sintaks->id;
+                        $tahap->status_validasi = 'pending';
+                        
+                        if ($request->has('orientasi_masalah')) {
+                            $tahap->orientasi_masalah = $request->orientasi_masalah;
+                        }
+                        if ($request->has('rumusan_masalah')) {
+                            $tahap->rumusan_masalah = $request->rumusan_masalah;
+                        }
+                        
+                        $tahap->save();
+                        
+                        $this->processFileUploads($request, $tahap);
+                        
+                        return redirect()->back()->with('success', 'Data tahap 1 berhasil disimpan.');
+                    }
+                    return redirect()->back()->with('error', 'Tahap 1 belum diisi oleh kelompok.');
+                }
+                
+                $dataUpdated = false;
+                
+                if ($request->has('orientasi_masalah')) {
+                    $tahap->orientasi_masalah = $request->orientasi_masalah;
+                    $dataUpdated = true;
+                }
+                
+                if ($request->has('rumusan_masalah')) {
+                    $tahap->rumusan_masalah = $request->rumusan_masalah;
+                    $dataUpdated = true;
+                }
+                
+                $filesUpdated = $this->processFileUploads($request, $tahap);
+                
+                if ($dataUpdated || $filesUpdated) {
+                    $tahap->save();
+                    return redirect()->back()->with('success', 'Data tahap 1 berhasil diperbarui.');
+                }
+                break;
+            case 'tahap_dua':
+                $tahap = $sintaks->sintaksTahapDua;
+                if (!$tahap) {
+                    if ($request->has('deskripsi_rancangan') || $request->hasFile('file_rancangan')) {
+                        $tahap = new \App\Models\SintaksTahapDua();
+                        $tahap->sintaks_id = $sintaks->id;
+                        $tahap->status_validasi = 'pending';
+                        
+                        if ($request->has('deskripsi_rancangan')) {
+                            $tahap->deskripsi_rancangan = $request->deskripsi_rancangan;
+                        }
+                        
+                        $tahap->save();
+                        
+                        $this->processFileUploads($request, $tahap);
+                        
+                        return redirect()->back()->with('success', 'Data tahap 2 berhasil disimpan.');
+                    }
+                    return redirect()->back()->with('error', 'Tahap 2 belum diisi oleh kelompok.');
+                }
+                
+                $dataUpdated = false;
+                
+                if ($request->has('deskripsi_rancangan')) {
+                    $tahap->deskripsi_rancangan = $request->deskripsi_rancangan;
+                    $dataUpdated = true;
+                }
+                
+                $filesUpdated = $this->processFileUploads($request, $tahap);
+                
+                if ($dataUpdated || $filesUpdated) {
+                    $tahap->save();
+                    return redirect()->back()->with('success', 'Data tahap 2 berhasil diperbarui.');
+                }
+                break;
+            case 'tahap_tiga':
+                $tahap = $sintaks->sintaksTahapTiga;
+                if (!$tahap) {
+                    return redirect()->back()->with('error', 'Tahap 3 belum diisi oleh kelompok.');
+                }
+                break;
+            case 'tahap_empat':
+                $tahap = $sintaks->sintaksTahapEmpat;
+                if (!$tahap) {
+                    return redirect()->back()->with('error', 'Tahap 4 belum diisi oleh kelompok.');
+                }
+                break;
+            case 'tahap_lima':
+                $tahap = $sintaks->sintaksTahapLima;
+                if (!$tahap) {
+                    if ($request->has('deskripsi_hasil') || $request->hasFile('file_hasil_karya')) {
+                        $tahap = new \App\Models\SintaksTahapLima();
+                        $tahap->sintaks_id = $sintaks->id;
+                        $tahap->status_validasi = 'pending';
+                        $tahap->status = 'proses';
+                        
+                        if ($request->has('deskripsi_hasil')) {
+                            $tahap->deskripsi_hasil = $request->deskripsi_hasil;
+                        }
+                        
+                        $tahap->save();
+                        
+                        $this->processFileUploads($request, $tahap);
+                        
+                        return redirect()->back()->with('success', 'Data tahap 5 berhasil disimpan.');
+                    }
+                    return redirect()->back()->with('error', 'Tahap 5 belum diisi oleh kelompok.');
+                }
+                
+                $dataUpdated = false;
+                
+                if ($request->has('deskripsi_hasil')) {
+                    $tahap->deskripsi_hasil = $request->deskripsi_hasil;
+                    $dataUpdated = true;
+                }
+                
+                $filesUpdated = $this->processFileUploads($request, $tahap);
+                
+                if ($dataUpdated || $filesUpdated) {
+                    $tahap->save();
+                    return redirect()->back()->with('success', 'Data tahap 5 berhasil diperbarui.');
+                }
+                break;
+            case 'tahap_enam':
+                $tahap = $sintaks->sintaksTahapEnam;
+                if (!$tahap) {
+                    if ($request->has('link_presentasi') || $request->has('jadwal_presentasi') || 
+                        $request->has('catatan_presentasi')) {
+                        $tahap = new \App\Models\SintaksTahapEnam();
+                        $tahap->sintaks_id = $sintaks->id;
+                        $tahap->status_validasi = 'pending';
+                        $tahap->status = 'proses';
+                        
+                        if ($request->has('link_presentasi')) {
+                            $tahap->link_presentasi = $request->link_presentasi;
+                        }
+                        
+                        if ($request->has('jadwal_presentasi')) {
+                            $tahap->jadwal_presentasi = $request->jadwal_presentasi;
+                        }
+                        
+                        if ($request->has('catatan_presentasi')) {
+                            $tahap->catatan_presentasi = $request->catatan_presentasi;
+                        }
+                        
+                        $tahap->save();
+                        
+                        
+                        return redirect()->back()->with('success', 'Data tahap 6 berhasil disimpan.');
+                    }
+                    return redirect()->back()->with('error', 'Tahap 6 belum diisi oleh kelompok.');
+                }
+                
+                $dataUpdated = false;
+                
+                if ($request->has('link_presentasi')) {
+                    $tahap->link_presentasi = $request->link_presentasi;
+                    $dataUpdated = true;
+                }
+                
+                if ($request->has('jadwal_presentasi')) {
+                    $tahap->jadwal_presentasi = $request->jadwal_presentasi;
+                    $dataUpdated = true;
+                }
+                
+                if ($request->has('catatan_presentasi')) {
+                    $tahap->catatan_presentasi = $request->catatan_presentasi;
+                    $dataUpdated = true;
+                }
+                
+                
+                if ($dataUpdated) {
+                    $tahap->save();
+                    return redirect()->back()->with('success', 'Data tahap 6 berhasil diperbarui.');
+                }
+                break;
+            case 'tahap_tuju':
+                $tahap = $sintaks->sintaksTahapTuju;
+                if (!$tahap) {
+                    $tahap = new \App\Models\SintaksTahapTuju();
+                    $tahap->sintaks_id = $sintaks->id;
+                }
+                
+                $tahap->status_validasi = $request->status_validasi;
+                $tahap->feedback_guru = $request->feedback_guru;
+                $tahap->save();
+                
+                // Jika validasi menjadi valid, update status tahap menjadi selesai
+                if ($request->status_validasi === 'valid') {
+                    $tahap->status = 'selesai';
+                    $tahap->save();
+                }
+                
+                return redirect()->back()->with('success', 'Status validasi Tahap 7 berhasil diperbarui.');
+                break;
+            case 'tahap_delapan':
+                $tahap = $sintaks->sintaksTahapDelapan;
+                if (!$tahap) {
+                    return redirect()->back()->with('error', 'Tahap 8 belum diisi oleh kelompok.');
+                }
+                
+                $tahap->status_validasi = $request->status_validasi;
+                $tahap->feedback_guru = $request->feedback_guru;
+                $tahap->save();
+                
+                // Jika validasi menjadi valid, update status tahap menjadi selesai
+                if ($request->status_validasi === 'valid') {
+                    $tahap->status = 'selesai';
+                    $tahap->save();
+                }
+                
+                return redirect()->back()->with('success', 'Status validasi Tahap 8 berhasil diperbarui.');
+                break;
             default:
                 return redirect()->back()->with('error', 'Tahap tidak valid.');
         }
+        
+        $tahap->update([
+            'status_validasi' => $request->status_validasi,
+            'feedback_guru' => $request->feedback_guru,
+        ]);
+
+        // Jika semua tahap sudah valid, update status validasi sintaks utama
+        if ($request->status_validasi === 'valid') {
+            $this->checkAllTahapValid($sintaks);
+        }
+
+        return redirect()->back()->with('success', 'Status validasi berhasil diperbarui.');
+    }
+
+    /**
+     * Memeriksa apakah semua tahap sudah valid untuk mengupdate status validasi sintaks utama
+     */
+    private function checkAllTahapValid(SintaksBaru $sintaks)
+    {
+        // Array untuk menyimpan status validasi setiap tahap
+        $tahapStatus = [
+            $sintaks->sintaksTahapSatu ? $sintaks->sintaksTahapSatu->status_validasi : null,
+            $sintaks->sintaksTahapDua ? $sintaks->sintaksTahapDua->status_validasi : null,
+            $sintaks->sintaksTahapTiga ? $sintaks->sintaksTahapTiga->status_validasi : null,
+            $sintaks->sintaksTahapEmpat ? $sintaks->sintaksTahapEmpat->status_validasi : null,
+            $sintaks->sintaksTahapLima ? $sintaks->sintaksTahapLima->status_validasi : null,
+            $sintaks->sintaksTahapEnam ? $sintaks->sintaksTahapEnam->status_validasi : null,
+            $sintaks->sintaksTahapTuju ? $sintaks->sintaksTahapTuju->status_validasi : null,
+            $sintaks->sintaksTahapDelapan ? $sintaks->sintaksTahapDelapan->status_validasi : null,
+        ];
+        
+        // Filter hanya tahap yang sudah ada (tidak null)
+        $existingTahap = array_filter($tahapStatus, function($status) {
+            return $status !== null;
+        });
+        
+        // Jika semua tahap yang ada sudah valid, set sintaks utama juga valid
+        if (count($existingTahap) > 0 && count(array_filter($existingTahap, function($status) {
+            return $status === 'valid';
+        })) === count($existingTahap)) {
+            $sintaks->update(['status_validasi' => 'valid']);
+        }
+    }
+
+    /**
+     * Menangani upload file untuk tahap satu
+     * 
+     * @param Request $request
+     * @param \App\Models\SintaksTahapSatu $tahap
+     * @return bool
+     */
+    private function processFileUploads(Request $request, $tahap)
+    {
+        $filesUpdated = false;
+        
+        // Upload file indikator masalah jika ada
+        if ($request->hasFile('file_indikator_masalah')) {
+            // Hapus file lama jika ada
+            if ($tahap->file_indikator_masalah && Storage::disk('public')->exists($tahap->file_indikator_masalah)) {
+                Storage::disk('public')->delete($tahap->file_indikator_masalah);
+            }
+            
+            // Simpan file baru
+            $filePath = $request->file('file_indikator_masalah')->store('sintaks/tahap1', 'public');
+            $tahap->file_indikator_masalah = $filePath;
+            $filesUpdated = true;
+        }
+        
+        // Upload file hasil analisis jika ada
+        if ($request->hasFile('file_hasil_analisis')) {
+            // Hapus file lama jika ada
+            if ($tahap->file_hasil_analisis && Storage::disk('public')->exists($tahap->file_hasil_analisis)) {
+                Storage::disk('public')->delete($tahap->file_hasil_analisis);
+            }
+            
+            // Simpan file baru
+            $filePath = $request->file('file_hasil_analisis')->store('sintaks/tahap1', 'public');
+            $tahap->file_hasil_analisis = $filePath;
+            $filesUpdated = true;
+        }
+        
+        // Upload file rancangan jika ada (untuk tahap 2)
+        if ($request->hasFile('file_rancangan')) {
+            // Hapus file lama jika ada
+            if (isset($tahap->file_rancangan) && $tahap->file_rancangan && Storage::disk('public')->exists($tahap->file_rancangan)) {
+                Storage::disk('public')->delete($tahap->file_rancangan);
+            }
+            
+            // Simpan file baru
+            $filePath = $request->file('file_rancangan')->store('sintaks/tahap2', 'public');
+            $tahap->file_rancangan = $filePath;
+            $filesUpdated = true;
+        }
+        
+        // Upload file hasil karya jika ada (untuk tahap 5)
+        if ($request->hasFile('file_hasil_karya')) {
+            // Hapus file lama jika ada
+            if (isset($tahap->file_hasil_karya) && $tahap->file_hasil_karya && Storage::disk('public')->exists($tahap->file_hasil_karya)) {
+                Storage::disk('public')->delete($tahap->file_hasil_karya);
+            }
+            
+            // Simpan file baru
+            $filePath = $request->file('file_hasil_karya')->store('sintaks/tahap5', 'public');
+            $tahap->file_hasil_karya = $filePath;
+            $filesUpdated = true;
+        }
+        
+        return $filesUpdated;
     }
 }

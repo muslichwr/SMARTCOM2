@@ -17,7 +17,9 @@ class SintaksTahapEmpatTugas extends Model
         'judul_task',
         'deskripsi_task',
         'deadline',
-        'status'
+        'status',
+        'catatan',
+        'file_tugas'
     ];
 
     protected $casts = [

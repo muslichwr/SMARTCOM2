@@ -15,23 +15,45 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // DB::table('users')->insert([
-        //     'name' => 'admin',
-        //     'email' => 'admin@gmail.com',
-        //     'password' => bcrypt('password'),
-        //     'role_as' => 1,
-        // ]);
+        // Admin Users (role_as = 1)
+        for ($i = 1; $i <= 5; $i++) {
+            User::create([
+                'name' => 'admin' . $i,
+                'email' => 'admin' . $i . '@mail.com',
+                'password' => bcrypt('admin123'),
+                'role_as' => 1,
+            ]);
+        }
 
-        for ($i=0; $i < 8; $i++) {
-            $faker = Factory::create('id_ID');
+        // Guru Users (role_as = 2)
+        for ($i = 1; $i <= 5; $i++) {
+            User::create([
+                'name' => 'guru' . $i,
+                'email' => 'guru' . $i . '@mail.com',
+                'password' => bcrypt('guru123'),
+                'role_as' => 2,
+            ]);
+        }
 
+        // Siswa Users (role_as = 0)
+        for ($i = 1; $i <= 30; $i++) {
+            User::create([
+                'name' => 'siswa' . $i,
+                'email' => 'siswa' . $i . '@mail.com',
+                'password' => bcrypt('siswa123'),
+                'role_as' => 0,
+            ]);
+        }
+
+        // Tambahkan beberapa siswa dengan data faker untuk memperkaya database
+        $faker = Factory::create('id_ID');
+        for ($i = 0; $i < 15; $i++) {
             User::create([
                 'name' => $faker->name(),
                 'email' => $faker->email(),
                 'password' => bcrypt('password'),
                 'role_as' => 0,
             ]);
-
         }
     }
 }

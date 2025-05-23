@@ -47,14 +47,20 @@ Route::prefix('user')->middleware(['auth'])->group(function () {
         Route::post('/materi/{slug}/sintaks/tahap2', 'simpanTahap2');
         Route::get('/materi/{slug}/sintaks/tahap3', 'tahap3')->name('user.materi.tahap3');
         Route::post('/materi/{slug}/sintaks/tahap3', 'simpanTahap3');
+        Route::post('/materi/{slug}/sintaks/tahap3/auto-validasi', 'autoValidasiTahap3')->name('user.materi.autoValidasiTahap3');
         Route::get('/materi/{slug}/sintaks/tahap4', 'tahap4')->name('user.materi.tahap4');
         Route::post('/materi/{slug}/sintaks/tahap4', 'simpanTahap4');
+        Route::post('/materi/{slug}/sintaks/tahap4/tambah-tugas', 'tambahTugasTahap4')->name('user.materi.tambahTugasTahap4');
+        
         Route::get('/materi/{slug}/sintaks/tahap5', 'tahap5')->name('user.materi.tahap5');
         Route::post('/materi/{slug}/sintaks/tahap5', 'simpanTahap5');
         Route::get('/materi/{slug}/sintaks/tahap6', 'tahap6')->name('user.materi.tahap6');
         Route::post('/materi/{slug}/sintaks/tahap6', 'simpanTahap6');
         Route::get('/materi/{slug}/sintaks/tahap7', 'tahap7')->name('user.materi.tahap7');
         Route::post('/materi/{slug}/sintaks/tahap7', 'mintaPenilaian');
+        Route::get('/materi/{slug}/sintaks/tahap8', 'tahap8')->name('user.materi.tahap8');
+        Route::post('/materi/{slug}/sintaks/tahap8', 'simpanTahap8')->name('user.materi.simpan-tahap8');
+        Route::post('/materi/{slug}/sintaks/tahap8/refleksi', 'simpanRefleksiIndividu')->name('user.materi.simpan-refleksi-individu');
         //Todo: Latihan
         Route::get('/latihan/{materiSlug}', 'bukaLatihan');
         Route::get('/latihan/{slug}/kerjakan', 'kerjakan');
@@ -91,7 +97,7 @@ Route::prefix('admin')->middleware(['auth', 'isAdmin'])->group(function () {
         Route::post('pjbl/sintaks/{materi}/{kelompok}/validasi', 'validasiTahap')->name('admin.pjbl.sintaks.validasi');
 
         // Beri nilai dan feedback (khusus tahap 7)
-        Route::post('pjbl/sintaks/{materi}/{kelompok}/nilai', 'beriNilai')->name('admin.pjbl.sintaks.nilai');
+        Route::post('pjbl/sintaks/{materi}/{kelompok}/nilai', 'beriNilai')->name('admin.pjbl.sintaks.beri-nilai');
 
         // Update data di setiap tahap
         Route::post('pjbl/sintaks/{materi}/{kelompok}/update', 'updateTahap')->name('admin.pjbl.sintaks.update');

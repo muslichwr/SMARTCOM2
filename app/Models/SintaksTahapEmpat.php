@@ -14,23 +14,23 @@ class SintaksTahapEmpat extends Model
     protected $fillable = [
         'sintaks_id',
         'status',
-                'feedback_guru',
-        'status_validasi'
+        'status_validasi',
+        'feedback_guru'
     ];
 
     public function sintaks()
     {
-        return $this->belongsTo(SintaksBaru::class);
+        return $this->belongsTo(SintaksBaru::class, 'sintaks_id');
     }
 
-    public function sintaksTugas()
-    {
-        return $this->hasMany(SintaksTahapEmpatTugas::class, 'sintaks_pelaksanaan_id');
-    }
-    
-    // Alias untuk sintaksTugas untuk kecocokan dengan kode pengetesan
     public function tasks()
     {
         return $this->hasMany(SintaksTahapEmpatTugas::class, 'sintaks_pelaksanaan_id');
+    }
+
+    // Alias untuk kompatibilitas dengan kode lama
+    public function sintaksTugas()
+    {
+        return $this->tasks();
     }
 }
