@@ -32,7 +32,7 @@
                     <span class="flex-1 ms-3 whitespace-nowrap">Soal</span>
                 </a>
             </li>
-            <li>
+            {{-- <li>
                 <a href="/admin/latihan"
                     class="{{ request()->is('admin/latihan*') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -42,7 +42,7 @@
                     </svg>
                     <span class="flex-1 ms-3 whitespace-nowrap">Latihan</span>
                 </a>
-            </li>
+            </li> --}}
             <li>
                 <a href="/admin/PrePost"
                     class="{{ request()->is('admin/PrePost') ? 'bg-blue-700 text-white' : '' }} flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-blue-100 hover:text-gray-900 dark:hover:bg-gray-700 group">

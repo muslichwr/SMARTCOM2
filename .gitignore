@@ -20,3 +20,4 @@ yarn-error.log
 /.cursor
 /.cursor/rules
 /.cursor/rules/*.mdc
+/database/seeders/
