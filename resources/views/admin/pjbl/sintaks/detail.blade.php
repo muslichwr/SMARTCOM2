@@ -381,11 +381,53 @@
                                 <div class="grid grid-cols-2 gap-4 mb-3">
                                     <div>
                                         <p class="text-sm font-medium text-gray-700">Tanggal Mulai:</p>
-                                        <p class="text-sm text-gray-900">{{ $sintaks->sintaksTahapTiga->jadwal_mulai ? date('d/m/Y', strtotime($sintaks->sintaksTahapTiga->jadwal_mulai)) : 'Belum diisi' }}</p>
+                                        <p class="text-sm text-gray-900">{{ $sintaks->sintaksTahapTiga->tanggal_mulai ? date('d/m/Y', strtotime($sintaks->sintaksTahapTiga->tanggal_mulai)) : 'Belum diisi' }}</p>
                                     </div>
                                     <div>
                                         <p class="text-sm font-medium text-gray-700">Tanggal Selesai:</p>
-                                        <p class="text-sm text-gray-900">{{ $sintaks->sintaksTahapTiga->jadwal_selesai ? date('d/m/Y', strtotime($sintaks->sintaksTahapTiga->jadwal_selesai)) : 'Belum diisi' }}</p>
+                                        <p class="text-sm text-gray-900">{{ $sintaks->sintaksTahapTiga->tanggal_selesai ? date('d/m/Y', strtotime($sintaks->sintaksTahapTiga->tanggal_selesai)) : 'Belum diisi' }}</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Formulir Edit Tanggal -->
+                                <div class="mt-3 border-t pt-3">
+                                    <button type="button" id="toggleEditTanggal" class="text-blue-500 hover:text-blue-700 text-sm flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                        Edit Tanggal
+                                    </button>
+                                    
+                                    <div id="formEditTanggal" class="hidden mt-3">
+                                        <form action="{{ route('admin.pjbl.sintaks.validasi', [$materi, $kelompok]) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="tahap" value="tahap_tiga">
+                                            <input type="hidden" name="status_validasi" value="{{ $sintaks->sintaksTahapTiga->status_validasi }}">
+                                            
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label for="tanggal_mulai" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
+                                                    <input type="date" name="tanggal_mulai" id="tanggal_mulai" 
+                                                        value="{{ $sintaks->sintaksTahapTiga->tanggal_mulai ? $sintaks->sintaksTahapTiga->tanggal_mulai->format('Y-m-d') : '' }}" 
+                                                        class="w-full border border-gray-300 rounded-md p-2 text-sm">
+                                                </div>
+                                                <div>
+                                                    <label for="tanggal_selesai" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Selesai</label>
+                                                    <input type="date" name="tanggal_selesai" id="tanggal_selesai" 
+                                                        value="{{ $sintaks->sintaksTahapTiga->tanggal_selesai ? $sintaks->sintaksTahapTiga->tanggal_selesai->format('Y-m-d') : '' }}" 
+                                                        class="w-full border border-gray-300 rounded-md p-2 text-sm">
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mt-3">
+                                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                                                    Simpan Perubahan
+                                                </button>
+                                                <button type="button" id="cancelEditTanggal" class="ml-2 bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded text-sm">
+                                                    Batal
+                                                </button>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
                                 
@@ -452,6 +494,26 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Script untuk Tahap 3 -->
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Toggle form edit tanggal
+                        const toggleBtn = document.getElementById('toggleEditTanggal');
+                        const editForm = document.getElementById('formEditTanggal');
+                        const cancelBtn = document.getElementById('cancelEditTanggal');
+                        
+                        if (toggleBtn && editForm && cancelBtn) {
+                            toggleBtn.addEventListener('click', function() {
+                                editForm.classList.toggle('hidden');
+                            });
+                            
+                            cancelBtn.addEventListener('click', function() {
+                                editForm.classList.add('hidden');
+                            });
+                        }
+                    });
+                </script>
                 @endif
 
                 <!-- Tahap 4: Pelaksanaan Proyek -->
@@ -1102,284 +1164,252 @@
                 @if($sintaks->sintaksTahapTuju || $sintaks->sintaksTahapEnam && $sintaks->sintaksTahapEnam->status_validasi === 'valid')
                 <div id="tahap7" class="mb-6 border rounded-lg p-4 bg-gray-50">
                     <h5 class="font-semibold text-lg mb-2">Tahap 7: Penilaian Kelompok dan Individu</h5>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <!-- Status Penilaian -->
-                            <div class="mb-4 bg-white p-4 rounded-lg shadow-sm">
-                                <div class="flex justify-between mb-2">
-                                    <p class="font-medium text-gray-700">Status Penilaian</p>
-                                    @php
-                                        $statusText = 'Belum Dimulai';
-                                        $statusColor = 'gray';
-                                        
-                                        if ($sintaks->sintaksTahapTuju) {
-                                            if ($sintaks->sintaksTahapTuju->status_validasi == 'pending') {
-                                                $statusText = 'Menunggu Penilaian';
-                                                $statusColor = 'yellow';
-                                            } elseif ($sintaks->sintaksTahapTuju->status_validasi == 'valid') {
-                                                $statusText = 'Penilaian Selesai';
-                                                $statusColor = 'green';
-                                            } elseif ($sintaks->sintaksTahapTuju->status_validasi == 'invalid') {
-                                                $statusText = 'Penilaian Ditolak';
-                                                $statusColor = 'red';
-                                            }
-                                        }
-                                    @endphp
-                                    <span class="px-2 py-1 bg-{{ $statusColor }}-100 text-{{ $statusColor }}-800 rounded-full text-xs">
-                                        {{ $statusText }}
-                                    </span>
-                                </div>
-                            </div>
-                            
-                            <!-- Daftar Anggota Kelompok untuk Penilaian -->
-                            <div class="bg-white p-4 rounded-lg shadow-sm mb-4">
-                                <h6 class="font-medium text-gray-700 mb-3">Anggota Kelompok</h6>
+                    
+                    <!-- Status Penilaian -->
+                    <div class="mb-4 bg-white p-4 rounded-lg shadow-sm">
+                        <div class="flex justify-between mb-2">
+                            <p class="font-medium text-gray-700">Status Penilaian</p>
+                            @php
+                                $statusText = 'Belum Dimulai';
+                                $statusColor = 'gray';
                                 
-                                @if(isset($anggotaKelompok) && $anggotaKelompok->isNotEmpty())
-                                    <div class="space-y-3">
-                                        @foreach($anggotaKelompok as $anggota)
-                                            <div class="p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                                                <div class="flex justify-between items-center">
-                                                    <div>
-                                                        <p class="font-medium">{{ $anggota->user->name }}</p>
-                                                        <p class="text-sm text-gray-500">{{ $anggota->user->email }}</p>
-                                                    </div>
-                                                    
-                                                    @php
-                                                        $nilaiAnggota = null;
-                                                        if ($sintaks->sintaksTahapTuju) {
-                                                            $nilaiAnggota = $sintaks->sintaksTahapTuju->nilaiIndividu()
-                                                                ->where('user_id', $anggota->user->id)
-                                                                ->first();
-                                                        }
-                                                    @endphp
-                                                    
-                                                    <div>
-                                                        @if($nilaiAnggota)
-                                                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full">
-                                                                Nilai: {{ $nilaiAnggota->total_nilai_individu }}
-                                                            </span>
-                                                        @else
-                                                            <button type="button" 
-                                                                onclick="showNilaiForm('{{ $anggota->user->id }}', '{{ $anggota->user->name }}')"
-                                                                class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm">
-                                                                Beri Nilai
-                                                            </button>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 p-3 rounded-lg text-sm">
-                                        <p>Tidak ada anggota kelompok yang ditemukan.</p>
-                                    </div>
-                                @endif
-                            </div>
+                                if ($sintaks->sintaksTahapTuju) {
+                                    if ($sintaks->sintaksTahapTuju->status_validasi == 'pending') {
+                                        $statusText = 'Menunggu Penilaian';
+                                        $statusColor = 'yellow';
+                                    } elseif ($sintaks->sintaksTahapTuju->status_validasi == 'valid') {
+                                        $statusText = 'Penilaian Selesai';
+                                        $statusColor = 'green';
+                                    } elseif ($sintaks->sintaksTahapTuju->status_validasi == 'invalid') {
+                                        $statusText = 'Penilaian Ditolak';
+                                        $statusColor = 'red';
+                                    }
+                                }
+                            @endphp
+                            <span class="px-2 py-1 bg-{{ $statusColor }}-100 text-{{ $statusColor }}-800 rounded-full text-xs">
+                                {{ $statusText }}
+                            </span>
                         </div>
-
-                        <!-- Form Penilaian dan Feedback -->
-                        <div id="form-penilaian-container" class="bg-white p-4 rounded-lg shadow-sm hidden">
-                            <h6 class="font-medium text-gray-700 mb-3">Form Penilaian <span id="nama-siswa" class="font-bold"></span></h6>
-                            
-                            <form action="{{ route('admin.pjbl.sintaks.beri-nilai', [$materi, $kelompok]) }}" method="POST" id="form-penilaian">
+                    </div>
+                    
+                    <!-- Form Penilaian Batch (Semua Siswa) -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm mb-4">
+                        <h6 class="font-medium text-gray-700 mb-3">Penilaian Seluruh Anggota Kelompok</h6>
+                        
+                        @if(isset($anggotaKelompok) && $anggotaKelompok->isNotEmpty())
+                            <form action="{{ route('admin.pjbl.sintaks.beri-nilai-batch', [$materi, $kelompok]) }}" method="POST" id="form-batch-penilaian">
                                 @csrf
-                                <input type="hidden" name="user_id" id="user_id_input">
                                 
-                                <!-- Template Kriteria Penilaian -->
-                                <div class="mb-4">
-                                    <h6 class="text-sm font-medium text-gray-700 mb-2">Kriteria Penilaian</h6>
-                                    
-                                    <div class="space-y-3">
-                                        <!-- Kriteria 1: Pemahaman Konsep -->
-                                        <div class="p-3 border rounded-lg">
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Pemahaman Konsep</label>
-                                            <input type="hidden" name="nilai_kriteria[kriteria][0][nama]" value="Pemahaman Konsep">
-                                            <input type="hidden" name="nilai_kriteria[kriteria][0][bobot]" value="3">
-                                            <div class="flex items-center">
-                                                <input type="number" name="nilai_kriteria[kriteria][0][nilai]" min="0" max="100" 
-                                                    class="w-20 border border-gray-300 rounded-md shadow-sm p-2 text-sm nilai-input" 
-                                                    required>
-                                                <span class="ml-2 text-sm text-gray-500">/100 (Bobot: 3)</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Kriteria 2: Implementasi -->
-                                        <div class="p-3 border rounded-lg">
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Implementasi</label>
-                                            <input type="hidden" name="nilai_kriteria[kriteria][1][nama]" value="Implementasi">
-                                            <input type="hidden" name="nilai_kriteria[kriteria][1][bobot]" value="4">
-                                            <div class="flex items-center">
-                                                <input type="number" name="nilai_kriteria[kriteria][1][nilai]" min="0" max="100" 
-                                                    class="w-20 border border-gray-300 rounded-md shadow-sm p-2 text-sm nilai-input" 
-                                                    required>
-                                                <span class="ml-2 text-sm text-gray-500">/100 (Bobot: 4)</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Kriteria 3: Kreativitas -->
-                                        <div class="p-3 border rounded-lg">
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Kreativitas</label>
-                                            <input type="hidden" name="nilai_kriteria[kriteria][2][nama]" value="Kreativitas">
-                                            <input type="hidden" name="nilai_kriteria[kriteria][2][bobot]" value="2">
-                                            <div class="flex items-center">
-                                                <input type="number" name="nilai_kriteria[kriteria][2][nilai]" min="0" max="100" 
-                                                    class="w-20 border border-gray-300 rounded-md shadow-sm p-2 text-sm nilai-input" 
-                                                    required>
-                                                <span class="ml-2 text-sm text-gray-500">/100 (Bobot: 2)</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Kriteria 4: Presentasi -->
-                                        <div class="p-3 border rounded-lg">
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Presentasi</label>
-                                            <input type="hidden" name="nilai_kriteria[kriteria][3][nama]" value="Presentasi">
-                                            <input type="hidden" name="nilai_kriteria[kriteria][3][bobot]" value="2">
-                                            <div class="flex items-center">
-                                                <input type="number" name="nilai_kriteria[kriteria][3][nilai]" min="0" max="100" 
-                                                    class="w-20 border border-gray-300 rounded-md shadow-sm p-2 text-sm nilai-input" 
-                                                    required>
-                                                <span class="ml-2 text-sm text-gray-500">/100 (Bobot: 2)</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Kriteria 5: Dokumentasi -->
-                                        <div class="p-3 border rounded-lg">
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Dokumentasi</label>
-                                            <input type="hidden" name="nilai_kriteria[kriteria][4][nama]" value="Dokumentasi">
-                                            <input type="hidden" name="nilai_kriteria[kriteria][4][bobot]" value="1">
-                                            <div class="flex items-center">
-                                                <input type="number" name="nilai_kriteria[kriteria][4][nilai]" min="0" max="100" 
-                                                    class="w-20 border border-gray-300 rounded-md shadow-sm p-2 text-sm nilai-input" 
-                                                    required>
-                                                <span class="ml-2 text-sm text-gray-500">/100 (Bobot: 1)</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Total Nilai -->
-                                <div class="mb-4 p-3 bg-blue-50 rounded-lg">
-                                    <div class="flex justify-between items-center">
-                                        <p class="font-medium text-blue-800">Total Nilai:</p>
-                                        <div class="flex items-center">
-                                            <input type="number" name="total_nilai_individu" id="total-nilai" value="0" 
-                                                class="border border-blue-300 rounded-md shadow-sm p-2 text-center w-24 bg-white text-blue-800 font-bold" readonly>
-                                            <span class="ml-1 text-blue-800">/100</span>
-                                        </div>
-                                    </div>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full bg-white border border-gray-200 mb-4">
+                                        <thead>
+                                            <tr class="bg-gray-100">
+                                                <th class="py-2 px-3 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Anggota</th>
+                                                <th class="py-2 px-3 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Pemahaman Konsep <br><span class="text-gray-400">(Bobot: 3)</span>
+                                                </th>
+                                                <th class="py-2 px-3 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Implementasi <br><span class="text-gray-400">(Bobot: 4)</span>
+                                                </th>
+                                                <th class="py-2 px-3 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Kreativitas <br><span class="text-gray-400">(Bobot: 2)</span>
+                                                </th>
+                                                <th class="py-2 px-3 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Presentasi <br><span class="text-gray-400">(Bobot: 2)</span>
+                                                </th>
+                                                <th class="py-2 px-3 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Dokumentasi <br><span class="text-gray-400">(Bobot: 1)</span>
+                                                </th>
+                                                <th class="py-2 px-3 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Total Nilai
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($anggotaKelompok as $index => $anggota)
+                                                @php
+                                                    $nilaiAnggota = null;
+                                                    $nilaiPemahaman = '';
+                                                    $nilaiImplementasi = '';
+                                                    $nilaiKreativitas = '';
+                                                    $nilaiPresentasi = '';
+                                                    $nilaiDokumentasi = '';
+                                                    $totalNilai = '';
+                                                    
+                                                    if ($sintaks->sintaksTahapTuju) {
+                                                        $nilaiAnggota = $sintaks->sintaksTahapTuju->nilaiIndividu()
+                                                            ->where('user_id', $anggota->user->id)
+                                                            ->first();
+                                                            
+                                                        if ($nilaiAnggota) {
+                                                            $nilaiKriteria = $nilaiAnggota->nilai_kriteria['kriteria'] ?? [];
+                                                            foreach ($nilaiKriteria as $kriteria) {
+                                                                if ($kriteria['nama'] == 'Pemahaman Konsep') {
+                                                                    $nilaiPemahaman = $kriteria['nilai'];
+                                                                } elseif ($kriteria['nama'] == 'Implementasi') {
+                                                                    $nilaiImplementasi = $kriteria['nilai'];
+                                                                } elseif ($kriteria['nama'] == 'Kreativitas') {
+                                                                    $nilaiKreativitas = $kriteria['nilai'];
+                                                                } elseif ($kriteria['nama'] == 'Presentasi') {
+                                                                    $nilaiPresentasi = $kriteria['nilai'];
+                                                                } elseif ($kriteria['nama'] == 'Dokumentasi') {
+                                                                    $nilaiDokumentasi = $kriteria['nilai'];
+                                                                }
+                                                            }
+                                                            $totalNilai = $nilaiAnggota->total_nilai_individu;
+                                                        }
+                                                    }
+                                                @endphp
+                                                
+                                                <tr class="{{ $index % 2 == 0 ? 'bg-white' : 'bg-gray-50' }}">
+                                                    <td class="py-2 px-3 border-b">
+                                                        <input type="hidden" name="nilai[{{ $index }}][user_id]" value="{{ $anggota->user->id }}">
+                                                        <div>
+                                                            <p class="font-medium">{{ $anggota->user->name }}</p>
+                                                            <p class="text-xs text-gray-500">{{ $anggota->user->email }}</p>
+                                                        </div>
+                                                    </td>
+                                                    <td class="py-2 px-3 border-b text-center">
+                                                        <input type="number" name="nilai[{{ $index }}][pemahaman]" value="{{ $nilaiPemahaman }}" 
+                                                            min="0" max="100" class="w-16 border border-gray-300 rounded p-1 text-center text-sm nilai-input"
+                                                            data-index="{{ $index }}" data-type="pemahaman" data-bobot="3" required>
+                                                    </td>
+                                                    <td class="py-2 px-3 border-b text-center">
+                                                        <input type="number" name="nilai[{{ $index }}][implementasi]" value="{{ $nilaiImplementasi }}" 
+                                                            min="0" max="100" class="w-16 border border-gray-300 rounded p-1 text-center text-sm nilai-input"
+                                                            data-index="{{ $index }}" data-type="implementasi" data-bobot="4" required>
+                                                    </td>
+                                                    <td class="py-2 px-3 border-b text-center">
+                                                        <input type="number" name="nilai[{{ $index }}][kreativitas]" value="{{ $nilaiKreativitas }}" 
+                                                            min="0" max="100" class="w-16 border border-gray-300 rounded p-1 text-center text-sm nilai-input"
+                                                            data-index="{{ $index }}" data-type="kreativitas" data-bobot="2" required>
+                                                    </td>
+                                                    <td class="py-2 px-3 border-b text-center">
+                                                        <input type="number" name="nilai[{{ $index }}][presentasi]" value="{{ $nilaiPresentasi }}" 
+                                                            min="0" max="100" class="w-16 border border-gray-300 rounded p-1 text-center text-sm nilai-input"
+                                                            data-index="{{ $index }}" data-type="presentasi" data-bobot="2" required>
+                                                    </td>
+                                                    <td class="py-2 px-3 border-b text-center">
+                                                        <input type="number" name="nilai[{{ $index }}][dokumentasi]" value="{{ $nilaiDokumentasi }}" 
+                                                            min="0" max="100" class="w-16 border border-gray-300 rounded p-1 text-center text-sm nilai-input"
+                                                            data-index="{{ $index }}" data-type="dokumentasi" data-bobot="1" required>
+                                                    </td>
+                                                    <td class="py-2 px-3 border-b text-center">
+                                                        <input type="number" name="nilai[{{ $index }}][total]" value="{{ $totalNilai }}" 
+                                                            min="0" max="100" class="w-16 border border-gray-300 rounded p-1 text-center text-sm font-bold bg-gray-100 total-nilai"
+                                                            data-index="{{ $index }}" readonly>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
                                 </div>
                                 
                                 <!-- Feedback -->
                                 <div class="mb-4">
-                                    <label for="feedback_guru" class="block text-sm font-medium text-gray-700 mb-1">Feedback untuk Siswa</label>
+                                    <label for="feedback_guru" class="block text-sm font-medium text-gray-700 mb-1">Feedback Umum untuk Kelompok</label>
                                     <textarea name="feedback_guru" id="feedback_guru" rows="3" 
-                                        class="w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"></textarea>
+                                        class="w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm">{{ $sintaks->sintaksTahapTuju->feedback_guru ?? '' }}</textarea>
                                 </div>
                                 
                                 <div class="flex justify-end">
-                                    <button type="button" onclick="cancelNilaiForm()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded text-sm mr-2">
-                                        Batal
-                                    </button>
                                     <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm">
-                                        Simpan Penilaian
+                                        Simpan Semua Nilai
                                     </button>
                                 </div>
                             </form>
-                        </div>
-                        
-                        <!-- Form Status Validasi -->
-                        <div id="form-validasi-container" class="bg-white p-4 rounded-lg shadow-sm">
-                            <h6 class="font-medium text-gray-700 mb-3">Status Tahapan</h6>
-                            <form action="{{ route('admin.pjbl.sintaks.validasi', [$materi, $kelompok]) }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="tahap" value="tahap_tuju">
-                                <div class="mb-3">
-                                    <label for="status_validasi" class="block text-sm font-medium text-gray-700 mb-1">Status Validasi</label>
-                                    <select name="status_validasi" id="status_validasi" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
-                                        <option value="valid" {{ $sintaks->sintaksTahapTuju && $sintaks->sintaksTahapTuju->status_validasi === 'valid' ? 'selected' : '' }}>Valid</option>
-                                        <option value="invalid" {{ $sintaks->sintaksTahapTuju && $sintaks->sintaksTahapTuju->status_validasi === 'invalid' ? 'selected' : '' }}>Invalid</option>
-                                        <option value="pending" {{ !$sintaks->sintaksTahapTuju || $sintaks->sintaksTahapTuju->status_validasi === 'pending' ? 'selected' : '' }}>Pending</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="feedback_guru" class="block text-sm font-medium text-gray-700 mb-1">Feedback Umum</label>
-                                    <textarea name="feedback_guru" id="feedback_guru" rows="4" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">{{ $sintaks->sintaksTahapTuju->feedback_guru ?? '' }}</textarea>
-                                </div>
-                                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-200">
-                                    Simpan Status Validasi
-                                </button>
-                            </form>
-                        </div>
+                        @else
+                            <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 p-3 rounded-lg text-sm">
+                                <p>Tidak ada anggota kelompok yang ditemukan.</p>
+                            </div>
+                        @endif
+                    </div>
+                    
+                    <!-- Form Status Validasi -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <h6 class="font-medium text-gray-700 mb-3">Status Tahapan</h6>
+                        <form action="{{ route('admin.pjbl.sintaks.validasi', [$materi, $kelompok]) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="tahap" value="tahap_tuju">
+                            <div class="mb-3">
+                                <label for="status_validasi" class="block text-sm font-medium text-gray-700 mb-1">Status Validasi</label>
+                                <select name="status_validasi" id="status_validasi" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                                    <option value="valid" {{ $sintaks->sintaksTahapTuju && $sintaks->sintaksTahapTuju->status_validasi === 'valid' ? 'selected' : '' }}>Valid</option>
+                                    <option value="invalid" {{ $sintaks->sintaksTahapTuju && $sintaks->sintaksTahapTuju->status_validasi === 'invalid' ? 'selected' : '' }}>Invalid</option>
+                                    <option value="pending" {{ !$sintaks->sintaksTahapTuju || $sintaks->sintaksTahapTuju->status_validasi === 'pending' ? 'selected' : '' }}>Pending</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-200">
+                                Simpan Status Validasi
+                            </button>
+                        </form>
                     </div>
                 </div>
                 
                 <!-- Script untuk Tahap 7 -->
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
-                        // Fungsi untuk menghitung total nilai
-                        function calculateTotalNilai() {
-                            const nilaiInputs = document.querySelectorAll('.nilai-input');
+                        // Input nilai pada tabel
+                        const nilaiInputs = document.querySelectorAll('.nilai-input');
+                        
+                        nilaiInputs.forEach(input => {
+                            input.addEventListener('input', function() {
+                                calculateTotalForStudent(this.dataset.index);
+                            });
+                            
+                            // Inisialisasi total nilai jika input sudah terisi
+                            if (input.value) {
+                                calculateTotalForStudent(input.dataset.index);
+                            }
+                        });
+                        
+                        // Fungsi untuk menghitung total nilai per siswa
+                        function calculateTotalForStudent(index) {
+                            const pemahamanInput = document.querySelector(`input[name="nilai[${index}][pemahaman]"]`);
+                            const implementasiInput = document.querySelector(`input[name="nilai[${index}][implementasi]"]`);
+                            const kreativitasInput = document.querySelector(`input[name="nilai[${index}][kreativitas]"]`);
+                            const presentasiInput = document.querySelector(`input[name="nilai[${index}][presentasi]"]`);
+                            const dokumentasiInput = document.querySelector(`input[name="nilai[${index}][dokumentasi]"]`);
+                            const totalInput = document.querySelector(`input[name="nilai[${index}][total]"]`);
+                            
                             let totalNilaiTertimbang = 0;
                             let totalBobot = 0;
                             
                             // Pemahaman Konsep (bobot 3)
-                            if (nilaiInputs[0].value) {
-                                totalNilaiTertimbang += parseFloat(nilaiInputs[0].value) * 3;
+                            if (pemahamanInput.value) {
+                                totalNilaiTertimbang += parseFloat(pemahamanInput.value) * 3;
                                 totalBobot += 3;
                             }
                             
                             // Implementasi (bobot 4)
-                            if (nilaiInputs[1].value) {
-                                totalNilaiTertimbang += parseFloat(nilaiInputs[1].value) * 4;
+                            if (implementasiInput.value) {
+                                totalNilaiTertimbang += parseFloat(implementasiInput.value) * 4;
                                 totalBobot += 4;
                             }
                             
                             // Kreativitas (bobot 2)
-                            if (nilaiInputs[2].value) {
-                                totalNilaiTertimbang += parseFloat(nilaiInputs[2].value) * 2;
+                            if (kreativitasInput.value) {
+                                totalNilaiTertimbang += parseFloat(kreativitasInput.value) * 2;
                                 totalBobot += 2;
                             }
                             
                             // Presentasi (bobot 2)
-                            if (nilaiInputs[3].value) {
-                                totalNilaiTertimbang += parseFloat(nilaiInputs[3].value) * 2;
+                            if (presentasiInput.value) {
+                                totalNilaiTertimbang += parseFloat(presentasiInput.value) * 2;
                                 totalBobot += 2;
                             }
                             
                             // Dokumentasi (bobot 1)
-                            if (nilaiInputs[4].value) {
-                                totalNilaiTertimbang += parseFloat(nilaiInputs[4].value) * 1;
+                            if (dokumentasiInput.value) {
+                                totalNilaiTertimbang += parseFloat(dokumentasiInput.value) * 1;
                                 totalBobot += 1;
                             }
                             
                             // Hitung total nilai
                             const totalNilai = totalBobot > 0 ? Math.round((totalNilaiTertimbang / totalBobot) * 100) / 100 : 0;
-                            document.getElementById('total-nilai').value = totalNilai;
+                            totalInput.value = totalNilai;
                         }
-                        
-                        // Tambahkan event listener untuk input nilai
-                        const nilaiInputs = document.querySelectorAll('.nilai-input');
-                        nilaiInputs.forEach(input => {
-                            input.addEventListener('input', calculateTotalNilai);
-                        });
                     });
-                    
-                    // Fungsi untuk menampilkan form penilaian
-                    function showNilaiForm(userId, userName) {
-                        document.getElementById('form-penilaian-container').classList.remove('hidden');
-                        document.getElementById('form-validasi-container').classList.add('hidden');
-                        document.getElementById('user_id_input').value = userId;
-                        document.getElementById('nama-siswa').textContent = userName;
-                    }
-                    
-                    // Fungsi untuk membatalkan form penilaian
-                    function cancelNilaiForm() {
-                        document.getElementById('form-penilaian-container').classList.add('hidden');
-                        document.getElementById('form-validasi-container').classList.remove('hidden');
-                        document.getElementById('form-penilaian').reset();
-                    }
                 </script>
                 @endif
 

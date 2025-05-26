@@ -79,27 +79,15 @@ Route::prefix('user')->middleware(['auth'])->group(function () {
 Route::prefix('admin')->middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('dashboard', [DashboardController::class,'index'])->name('admin.dashboard');
 
-    // Sintaks Route
     Route::controller(PJBLSintaksController::class)->group(function () {
-        // Halaman utama (daftar materi)
         Route::get('pjbl/sintaks', 'index')->name('admin.pjbl.sintaks.index');
-
-        // Toggle PJBL Sintaks aktif/nonaktif
         Route::post('pjbl/sintaks/{id}/toggle', 'togglePJBLSintaks')->name('admin.pjbl.sintaks.toggle');
-
-        // Daftar kelompok di materi tertentu
         Route::get('pjbl/sintaks/{materi}/kelompok', 'listKelompok')->name('admin.pjbl.sintaks.kelompok');
-
-        // Detail sintaks kelompok
+        Route::post('pjbl/sintaks/{materi}/post-orientasi', 'postOrientasiMasalah')->name('admin.pjbl.sintaks.post-orientasi');
         Route::get('pjbl/sintaks/{materi}/{kelompok}/detail', 'detailSintaks')->name('admin.pjbl.sintaks.detail');
-
-        // Validasi sintaks di setiap tahap
         Route::post('pjbl/sintaks/{materi}/{kelompok}/validasi', 'validasiTahap')->name('admin.pjbl.sintaks.validasi');
-
-        // Beri nilai dan feedback (khusus tahap 7)
         Route::post('pjbl/sintaks/{materi}/{kelompok}/nilai', 'beriNilai')->name('admin.pjbl.sintaks.beri-nilai');
-
-        // Update data di setiap tahap
+        Route::post('pjbl/sintaks/{materi}/{kelompok}/nilai-batch', 'beriNilaiBatch')->name('admin.pjbl.sintaks.beri-nilai-batch');
         Route::post('pjbl/sintaks/{materi}/{kelompok}/update', 'updateTahap')->name('admin.pjbl.sintaks.update');
     });
 

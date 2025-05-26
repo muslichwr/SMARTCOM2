@@ -21,3 +21,4 @@ yarn-error.log
 /.cursor/rules
 /.cursor/rules/*.mdc
 /database/seeders/
+*revisi.txt

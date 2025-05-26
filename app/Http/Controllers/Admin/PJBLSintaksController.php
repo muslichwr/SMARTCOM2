@@ -538,6 +538,16 @@ class PJBLSintaksController extends Controller
                 if (!$tahap) {
                     return redirect()->back()->with('error', 'Tahap 3 belum diisi oleh kelompok.');
                 }
+                
+                // Update tanggal mulai dan selesai jika ada
+                if ($request->has('tanggal_mulai')) {
+                    $tahap->tanggal_mulai = $request->tanggal_mulai;
+                }
+                
+                if ($request->has('tanggal_selesai')) {
+                    $tahap->tanggal_selesai = $request->tanggal_selesai;
+                }
+                
                 break;
             case 'tahap_empat':
                 $tahap = $sintaks->sintaksTahapEmpat;
@@ -716,6 +726,186 @@ class PJBLSintaksController extends Controller
         })) === count($existingTahap)) {
             $sintaks->update(['status_validasi' => 'valid']);
         }
+    }
+
+    /**
+     * Memposting orientasi masalah ke seluruh kelompok pada suatu materi
+     *
+     * @param Request $request
+     * @param Materi $materi
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function postOrientasiMasalah(Request $request, Materi $materi)
+    {
+        // Validasi input
+        $request->validate([
+            'orientasi_masalah' => 'required|string',
+        ]);
+
+        // Cek apakah PJBL Sintaks aktif untuk materi ini
+        if (!$materi->pjbl_sintaks_active) {
+            return redirect()->route('admin.pjbl.sintaks.index')
+                ->with('error', 'PJBL Sintaks tidak aktif untuk materi ini.');
+        }
+
+        // Dapatkan semua kelompok yang terkait dengan materi ini
+        $kelompoks = Kelompok::whereHas('sintaks', function($query) use ($materi) {
+            $query->where('materi_id', $materi->id);
+        })->get();
+
+        // Jika tidak ada kelompok, buat sintaks baru untuk setiap kelompok
+        if ($kelompoks->isEmpty()) {
+            $kelompoks = Kelompok::all(); // Ambil semua kelompok jika tidak ada yang terkait
+        }
+
+        // Simpan orientasi masalah ke setiap kelompok
+        $berhasilCount = 0;
+        foreach ($kelompoks as $kelompok) {
+            // Dapatkan atau buat sintaks baru untuk kelompok ini
+            $sintaks = SintaksBaru::firstOrCreate([
+                'materi_id' => $materi->id,
+                'kelompok_id' => $kelompok->id,
+            ], [
+                'status_validasi' => 'pending'
+            ]);
+
+            // Cek apakah tahap satu sudah ada
+            $tahapSatu = $sintaks->sintaksTahapSatu;
+            if (!$tahapSatu) {
+                // Buat tahap satu baru jika belum ada
+                $tahapSatu = new SintaksTahapSatu([
+                    'sintaks_id' => $sintaks->id,
+                    'orientasi_masalah' => $request->orientasi_masalah,
+                    'status_validasi' => 'invalid', // Otomatis divalidasi karena dibuat oleh guru
+                    'feedback_guru' => 'Orientasi masalah diposting oleh guru'
+                ]);
+
+
+                $tahapSatu->save();
+                $berhasilCount++;
+            } else {
+                // Update tahap satu jika sudah ada
+                $tahapSatu->orientasi_masalah = $request->orientasi_masalah;
+                $tahapSatu->status_validasi = 'invalid';
+                
+                $tahapSatu->save();
+                $berhasilCount++;
+            }
+        }
+
+        return redirect()->back()->with('success', "Orientasi masalah berhasil diposting ke $berhasilCount kelompok.");
+    }
+
+    /**
+     * Memberikan nilai untuk semua anggota kelompok secara batch/sekaligus
+     *
+     * @param Request $request
+     * @param Materi $materi
+     * @param Kelompok $kelompok
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function beriNilaiBatch(Request $request, Materi $materi, Kelompok $kelompok)
+    {
+        // Cek apakah PJBL Sintaks aktif untuk materi ini
+        if (!$materi->pjbl_sintaks_active) {
+            return redirect()->route('admin.pjbl.sintaks.index')
+                ->with('error', 'PJBL Sintaks tidak aktif untuk materi ini.');
+        }
+
+        // Validasi input
+        $request->validate([
+            'nilai' => 'required|array',
+            'nilai.*.user_id' => 'required|exists:users,id',
+            'nilai.*.pemahaman' => 'required|integer|min:0|max:100',
+            'nilai.*.implementasi' => 'required|integer|min:0|max:100',
+            'nilai.*.kreativitas' => 'required|integer|min:0|max:100',
+            'nilai.*.presentasi' => 'required|integer|min:0|max:100',
+            'nilai.*.dokumentasi' => 'required|integer|min:0|max:100',
+            'nilai.*.total' => 'required|numeric|min:0|max:100',
+            'feedback_guru' => 'nullable|string',
+        ]);
+
+        $sintaks = SintaksBaru::where('materi_id', $materi->id)
+                           ->where('kelompok_id', $kelompok->id)
+                           ->firstOrFail();
+        
+        // Ambil atau buat SintaksTahapTuju
+        $tahapTuju = $sintaks->sintaksTahapTuju;
+        if (!$tahapTuju) {
+            $tahapTuju = SintaksTahapTuju::create([
+                'sintaks_id' => $sintaks->id,
+                'status_validasi' => 'valid',
+                'feedback_guru' => $request->feedback_guru,
+                'status' => 'selesai'
+            ]);
+        } else {
+            $tahapTuju->update([
+                'status_validasi' => 'valid',
+                'feedback_guru' => $request->feedback_guru,
+                'status' => 'selesai'
+            ]);
+        }
+
+        // Simpan nilai untuk setiap anggota kelompok
+        $totalNilaiKelompok = 0;
+        $jumlahAnggota = 0;
+
+        foreach ($request->nilai as $nilai) {
+            $userId = $nilai['user_id'];
+            $totalNilai = $nilai['total'];
+            $totalNilaiKelompok += $totalNilai;
+            $jumlahAnggota++;
+            
+            // Siapkan nilai kriteria dengan format yang sesuai
+            $nilaiKriteria = [
+                'kriteria' => [
+                    [
+                        'nama' => 'Pemahaman Konsep',
+                        'nilai' => $nilai['pemahaman'],
+                        'bobot' => 3
+                    ],
+                    [
+                        'nama' => 'Implementasi',
+                        'nilai' => $nilai['implementasi'],
+                        'bobot' => 4
+                    ],
+                    [
+                        'nama' => 'Kreativitas',
+                        'nilai' => $nilai['kreativitas'],
+                        'bobot' => 2
+                    ],
+                    [
+                        'nama' => 'Presentasi',
+                        'nilai' => $nilai['presentasi'],
+                        'bobot' => 2
+                    ],
+                    [
+                        'nama' => 'Dokumentasi',
+                        'nilai' => $nilai['dokumentasi'],
+                        'bobot' => 1
+                    ]
+                ]
+            ];
+
+            // Simpan nilai individu
+            SintaksTahapTujuNilai::updateOrCreate(
+                [
+                    'sintaks_penilaian_id' => $tahapTuju->id,
+                    'user_id' => $userId
+                ],
+                [
+                    'nilai_kriteria' => $nilaiKriteria,
+                    'total_nilai_individu' => $totalNilai
+                ]
+            );
+        }
+
+        // Update total nilai di sintaks utama
+        if ($jumlahAnggota > 0) {
+            $sintaks->update(['total_nilai' => round($totalNilaiKelompok / $jumlahAnggota)]);
+        }
+
+        return redirect()->back()->with('success', "Nilai berhasil disimpan untuk semua anggota kelompok.");
     }
 
     /**
