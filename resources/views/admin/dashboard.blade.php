@@ -46,10 +46,43 @@
         </div>
     </div>
 
-    <!-- Grafik -->
-    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Grafik Penyelesaian Materi</h2>
-        <canvas id="completionChart" class="w-full h-64"></canvas>
+    <!-- Grafik dengan Filter Dinamis -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Bar Chart: Penyelesaian per Bulan -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Penyelesaian per Bulan</h2>
+                <div class="flex items-center space-x-2">
+                    <label for="chartYear" class="text-sm text-gray-600">Tahun:</label>
+                    <select id="chartYear" onchange="updateChart()" class="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        @foreach($availableYears as $year)
+                            <option value="{{ $year }}" {{ $year == $selectedYear ? 'selected' : '' }}>{{ $year }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="relative" style="height: 300px;">
+                <canvas id="completionChart"></canvas>
+            </div>
+            <div class="mt-3 text-center text-sm text-gray-500">
+                Total Penyelesaian {{ $selectedYear }}: <span class="font-bold text-blue-600">{{ $completionData->sum() }}</span> bab
+            </div>
+        </div>
+        
+        <!-- Pie Chart: Top 5 Materi -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Materi Paling Banyak Diselesaikan</h2>
+            <div class="relative" style="height: 300px;">
+                <canvas id="materiChart"></canvas>
+            </div>
+            @if($materiCompletionData->isEmpty())
+                <div class="mt-3 text-center text-sm text-gray-500">Belum ada data penyelesaian materi</div>
+            @else
+                <div class="mt-3 text-center text-sm text-gray-500">
+                    Total: <span class="font-bold text-green-600">{{ $materiCompletionData->sum('total') }}</span> penyelesaian dari {{ $materiCompletionData->count() }} materi
+                </div>
+            @endif
+        </div>
     </div>
 
     <!-- Tabel Data Terbaru with DataTables -->
@@ -237,30 +270,131 @@
     // Data dari controller
     const months = @json($months);
     const completionData = @json($completionData);
+    const materiData = @json($materiCompletionData);
+    const selectedYear = {{ $selectedYear }};
     
-    // Grafik Menggunakan Chart.js dengan data dinamis
-    const ctx = document.getElementById('completionChart').getContext('2d');
-    const completionChart = new Chart(ctx, {
+    // Warna gradient untuk bar chart
+    const barCtx = document.getElementById('completionChart').getContext('2d');
+    const gradient = barCtx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.8)');
+    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.2)');
+    
+    // Bar Chart: Penyelesaian per Bulan
+    const completionChart = new Chart(barCtx, {
         type: 'bar',
         data: {
             labels: months,
             datasets: [{
-                label: 'Jumlah Penyelesaian',
+                label: 'Penyelesaian Bab',
                 data: completionData,
-                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                backgroundColor: gradient,
                 borderColor: 'rgba(59, 130, 246, 1)',
                 borderWidth: 2,
+                borderRadius: 8,
+                borderSkipped: false,
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 13 },
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.parsed.y} bab diselesaikan`;
+                        }
+                    }
+                }
+            },
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: { size: 11 }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: { size: 11 }
+                    },
+                    grid: {
+                        display: false
+                    }
                 }
             }
         }
     });
+    
+    // Pie Chart: Top 5 Materi
+    const pieColors = [
+        'rgba(59, 130, 246, 0.8)',   // Blue
+        'rgba(16, 185, 129, 0.8)',   // Green
+        'rgba(245, 158, 11, 0.8)',   // Yellow
+        'rgba(239, 68, 68, 0.8)',    // Red
+        'rgba(139, 92, 246, 0.8)'    // Purple
+    ];
+    
+    const pieCtx = document.getElementById('materiChart').getContext('2d');
+    const materiChart = new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: materiData.map(m => m.judul),
+            datasets: [{
+                data: materiData.map(m => m.total),
+                backgroundColor: pieColors,
+                borderColor: '#ffffff',
+                borderWidth: 3,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '50%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: { size: 11 }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return `${context.parsed} penyelesaian (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Fungsi untuk update chart berdasarkan tahun yang dipilih
+    function updateChart() {
+        const year = document.getElementById('chartYear').value;
+        // Redirect dengan parameter chart_year
+        const url = new URL(window.location.href);
+        url.searchParams.set('chart_year', year);
+        window.location.href = url.toString();
+    }
 </script>
 
 <style>
