@@ -50,8 +50,8 @@ class DashboardController extends Controller
         // Urutkan berdasarkan tanggal terbaru
         $query->orderBy('updated_at', 'desc');
         
-        // Pagination
-        $recentActivities = $query->paginate(10);
+        // Pagination - DataTables handles client-side pagination, so get all data
+        $recentActivities = $query->get();
             
         // Data untuk grafik penyelesaian materi per bulan (6 bulan terakhir)
         $months = collect([]);

@@ -1,0 +1,14 @@
+id	judul
+1	Bab 1: Pengertian dan Manfaat Jaringan Dasar
+2	Bab 2: Jenis Jaringan Dasar
+3	Bab 3: Topologi Jaringan
+4	Bab 1: TCP/IP
+5	Bab 2: Alamat IP
+6	Bab 3: Subnetting
+7	Bab 4: Gateway Default
+8	Bab 1: Simulasi Membuat Jaringan Sederhana
+9	Bab 2: Simulasi Membuat Jaringan Nirkabel
+10	Bab 3: Membuat Server DHCP di Lingkungan Lokal
+11	Bab 4: Konfigurasi Server HTTP (Apache/Nginx)
+12	Bab 5: Setup Server DNS Lokal
+13	Bab 6: Routing Antar Jaringan (Interconnect Network)
